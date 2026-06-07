@@ -169,7 +169,7 @@ function drawOutlines(svg, sz, gp, ox, oy){
       const isTgt=S.sel&&S.sel.player===S.cp&&pi!==S.cp&&adj([S.sel.tid],reg);
       const col=isSel?'#fff':PC[pi];
       const w=isSel?3:2;
-      const op=isTgt?.8:.5;
+      const op=isTgt ? .8 : .5;
       for(const l of lines){
         html+=`<line x1="${l.split(' ')[0]}" y1="${l.split(' ')[1]}" x2="${l.split(' ')[2]}" y2="${l.split(' ')[3]}" stroke="${col}" stroke-width="${w}" opacity="${op}" stroke-linecap="round"/>`;
       }

@@ -141,59 +141,41 @@ function regs(pid){const v=new Set(),r=[];S.t.filter(t=>t.owner===pid).forEach(t
 function rTr(ids){return ids.reduce((s,i)=>s+Math.floor(S.t[i].troops),0);}
 function adj(a,b){for(const sa of a)for(const n of S.t[sa].n)if(b.includes(n))return true;return false;}
 
-// Compute region outline path
-function regOutline(ids){
-  const set=new Set(ids);
-  const edges=[];
-  for(const i of ids){
-    const{r,c}=rc(i);
-    const u=set.has(r>0?id(r-1,c):-1),d=set.has(r<G-1?id(r+1,c):-1),l=set.has(c>0?id(r,c-1):-1),r2=set.has(c<G-1?id(r,c+1):-1);
-    if(!u&&l)edges.push({x1:c,y1:r,x2:c+1,y2:r}); // top-left corner
-    if(!u)edges.push({x1:c+1,y1:r,x2:c,y2:r}); // top edge
-    if(!u&&r2)edges.push({x1:c+1,y1:r,x2:c+1,y2:r}); // top-right corner
-    if(!r2&&!u)edges.push({x1:c+1,y1:r,x2:c+1,y2:r}); // right-top
-    if(!r2)edges.push({x1:c+1,y1:r+1,x2:c+1,y2:r}); // right edge
-    if(!r2&&d)edges.push({x1:c+1,y1:r+1,x2:c+1,y2:r+1}); // right-bottom corner
-    if(!d&&r2)edges.push({x1:c+1,y1:r+1,x2:c+1,y2:r+1}); // bottom-right
-    if(!d)edges.push({x1:c,y1:r+1,x2:c+1,y2:r+1}); // bottom edge
-    if(!d&&l)edges.push({x1:c,y1:r+1,x2:c,y2:r+1}); // bottom-left
-    if(!l&&!d)edges.push({x1:c,y1:r+1,x2:c,y2:r+1}); // left-bottom
-    if(!l)edges.push({x1:c,y1:r,x2:c,y2:r+1}); // left edge
-    if(!l&&u)edges.push({x1:c,y1:r,x2:c,y2:r}); // left-top corner
-  }
-  // Build SVG path from edges
-  if(!edges.length)return '';
-  // Remove duplicates (opposite direction cancels)
-  const edgeMap=new Map();
-  const key=(a,b)=>Math.min(a,b)+'-'+Math.max(a,b);
-  const dir=(a,b)=>`${a.x},${a.y}-${b.x},${b.y}`;
-  for(const e of edges){
-    const k=key(e,{x1:e.x2,y1:e.y2,x2:e.x1,y2:e.y1});
-    const d=dir({x:e.x1,y:e.y1},{x:e.x2,y:e.y2});
-    if(edgeMap.has(k)&&edgeMap.get(k)!==d)edgeMap.delete(k);
-    else edgeMap.set(k,d);
-  }
-  // Connect edges into path
-  const remaining=[...edgeMap.entries()].map(([k,v])=>{
-    const pts=k.split('-').map(s=>s.split(',').map(Number));
-    const d=v.split('-');
-    return {x1:pts[0][0],y1:pts[0][1],x2:pts[1][0],y2:pts[1][1]};
+// Draw region outlines (pixel-based, handles gaps correctly)
+function drawOutlines(svg, sz, gp, ox, oy){
+  let html='';
+  S.pl.forEach((p,pi)=>{
+    if(!p.alive)return;
+    const rgs=regs(pi);
+    rgs.forEach(reg=>{
+      if(reg.length<2)return;
+      const set=new Set(reg);
+      let lines=[];
+      for(const i of reg){
+        const{r,c}=rc(i);
+        const x=ox+c*(sz+gp),y=oy+r*(sz+gp);
+        // Check 4 neighbors: if not same region, draw edge
+        const u=set.has(r>0?id(r-1,c):-1);
+        const d=set.has(r<G-1?id(r+1,c):-1);
+        const l=set.has(c>0?id(r,c-1):-1);
+        const r2=set.has(c<G-1?id(r,c+1):-1);
+        if(!u)lines.push(`${x} ${y} ${x+sz} ${y}`);       // top
+        if(!r2)lines.push(`${x+sz} ${y} ${x+sz} ${y+sz}`); // right
+        if(!d)lines.push(`${x+sz} ${y+sz} ${x} ${y+sz}`); // bottom
+        if(!l)lines.push(`${x} ${y+sz} ${x} ${y}`);        // left
+      }
+      if(!lines.length)return;
+      const isSel=S.sel&&S.sel.tid!==-1&&reg.includes(S.sel.tid);
+      const isTgt=S.sel&&S.sel.player===S.cp&&pi!==S.cp&&adj([S.sel.tid],reg);
+      const col=isSel?'#fff':PC[pi];
+      const w=isSel?3:2;
+      const op=isTgt?.8:.5;
+      for(const l of lines){
+        html+=`<line x1="${l.split(' ')[0]}" y1="${l.split(' ')[1]}" x2="${l.split(' ')[2]}" y2="${l.split(' ')[3]}" stroke="${col}" stroke-width="${w}" opacity="${op}" stroke-linecap="round"/>`;
+      }
+    });
   });
-  if(!remaining.length)return '';
-  // Sort into order
-  const ordered=[remaining.shift()];
-  while(remaining.length>0){
-    const last=ordered[ordered.length-1];
-    const idx=remaining.findIndex(e=>Math.abs(e.x1-last.x2)<.01&&Math.abs(e.y1-last.y2)<.01);
-    if(idx<0)break;
-    ordered.push(remaining.splice(idx,1)[0]);
-  }
-  const pad=.2;
-  const path=ordered.map((e,i)=>{
-    const x=(i===0?e.x1:e.x2)+pad,y=(i===0?e.y1:e.y2)+pad;
-    return `${i===0?'M':'L'}${x} ${y}`;
-  }).join(' ');
-  return path?path+' Z':'';
+  svg.innerHTML=html;
 }
 
 // ===== RENDER =====
@@ -225,30 +207,7 @@ function render(){
   cg.querySelectorAll('.cell').forEach(el=>{el.onclick=()=>onCell(parseInt(el.dataset.id));});
 
   // ---- Region outlines (SVG) ----
-  let svgHTML='';
-  S.pl.forEach((p,pi)=>{
-    if(!p.alive)return;
-    const regions=regs(pi);
-    regions.forEach(reg=>{
-      if(reg.length<2)return;
-      const path=regOutline(reg);
-      if(!path)return;
-      // Transform path coordinates
-      const pts=path.split(/(?=[MLZ])/).map(seg=>{
-        if(seg==='Z')return seg;
-        const type=seg[0];
-        const nums=seg.slice(1).trim().split(' ').map(Number);
-        if(nums.length===2)return type+ ' '+(nums[0]*(sz+gp)+ox)+' '+(nums[1]*(sz+gp)+oy);
-        return seg;
-      }).join(' ');
-      const isSel=S.sel&&S.sel.tid!==-1&&reg.includes(S.sel.tid);
-      const isTgt=S.sel&&S.sel.player===S.cp&&pi!==S.cp&&adj([S.sel.tid],reg);
-      const sw=isSel?4:2.5;
-      const col=isSel?'#fff':PC[pi];
-      svgHTML+=`<path d="${pts}" fill="none" stroke="${col}" stroke-width="${sw}" opacity="${isTgt?.7:.5}" stroke-linejoin="round" stroke-linecap="round"/>`;
-    });
-  });
-  svg.innerHTML=svgHTML;
+  drawOutlines(svg, sz, gp, ox, oy);
 
   // ---- Region troop labels ----
   document.querySelectorAll('.rl').forEach(el=>el.remove());

@@ -1,14 +1,13 @@
-<!-- v2026-06-08.1 -->
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>领土战争·九宫格</title>
+<title>领土战争·合并版</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;user-select:none;}
 body{background:#0a0e17;font-family:-apple-system,'PingFang SC','Helvetica Neue',sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;overflow:hidden;}
-#app{width:100%;max-width:480px;height:100vh;max-height:900px;background:linear-gradient(145deg,#111827,#0f172a);display:flex;flex-direction:column;position:relative;overflow:hidden;box-shadow:0 0 60px rgba(0,0,0,.8);}
+#app{width:100%;max-width:480px;height:100vh;max-height:920px;background:linear-gradient(145deg,#111827,#0f172a);display:flex;flex-direction:column;position:relative;overflow:hidden;box-shadow:0 0 60px rgba(0,0,0,.8);}
 .header{display:flex;align-items:center;justify-content:space-between;padding:6px 10px 4px;background:rgba(0,0,0,.4);border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;z-index:10;}
 .header .left{display:flex;align-items:center;gap:5px;}
 .header .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
@@ -26,26 +25,26 @@ body{background:#0a0e17;font-family:-apple-system,'PingFang SC','Helvetica Neue'
 .sbi .sl{color:#64748b;font-size:8px;}
 .sbi .se{color:#4ade80;font-size:8px;}
 .sbi.me{background:rgba(56,189,248,.12);}
-.mapC{flex:1;position:relative;overflow:auto;min-height:0;display:flex;align-items:center;justify-content:center;padding:4px;}
-.mapC::-webkit-scrollbar{width:2px;height:2px;}
-.mapC::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px;}
 
-.grid{position:relative;flex-shrink:0;}
-.cell{
-  position:absolute;border-radius:3px;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;cursor:pointer;
-  font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6);
-  transition:opacity .15s,border-color .15s;overflow:hidden;
+.mapC{flex:1;position:relative;overflow:hidden;min-height:0;display:flex;align-items:center;justify-content:center;padding:4px;}
+.mapC svg{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}
+
+/* Region blocks */
+.region-block{
+  position:absolute;border-radius:6px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;cursor:pointer;z-index:2;
+  text-shadow:0 2px 8px rgba(0,0,0,.8);border:3px solid;
+  transition:opacity .15s,border-color .15s,box-shadow .15s;
+  min-width:30px;min-height:30px;overflow:hidden;
 }
-.cell .ct{font-size:12px;line-height:1;}
-.cell .cs{font-size:7px;color:rgba(255,255,255,.4);line-height:1;position:absolute;top:2px;right:3px;}
-.cell.sel{border-color:#fff!important;z-index:3;}
-.cell.tgt{animation:glow .6s ease-in-out infinite;z-index:2;}
-@keyframes glow{0%,100%{opacity:.8;border-color:#fff}50%{opacity:1;border-color:#ffe066}}
-.cell .battle-bar{
-  position:absolute;bottom:0;left:0;height:3px;background:rgba(255,255,255,.3);transition:width .3s;
-}
-.cell .battle-bar .fill{height:100%;background:#ffe066;transition:width .3s;}
+.region-block .rt{font-size:22px;font-weight:900;color:#fff;line-height:1.2;pointer-events:none;}
+.region-block .rn{font-size:10px;color:rgba(255,255,255,.5);pointer-events:none;}
+.region-block .rr{font-size:8px;color:rgba(255,255,255,.3);pointer-events:none;margin-top:1px;}
+.region-block.sel{box-shadow:0 0 0 3px rgba(255,255,255,.5),0 0 20px rgba(255,255,255,.15);z-index:4;}
+.region-block.tgt{animation:rgb .6s ease-in-out infinite;z-index:3;}
+@keyframes rgb{0%,100%{border-color:rgba(255,255,255,.6);box-shadow:0 0 12px rgba(255,255,255,.2);}50%{border-color:rgba(255,255,255,1);box-shadow:0 0 25px rgba(255,255,255,.4);}}
+.region-block .bbar{position:absolute;bottom:0;left:0;height:4px;background:rgba(0,0,0,.3);width:100%;}
+.region-block .bbar .fill{height:100%;background:linear-gradient(90deg,#fbbf24,#f59e0b);transition:width .3s;}
 
 .eb{position:absolute;top:0;left:50%;transform:translateX(-50%);z-index:5;display:flex;align-items:center;gap:5px;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);border-radius:0 0 8px 8px;padding:2px 10px 3px;border:1px solid rgba(255,255,255,.06);border-top:none;pointer-events:none;}
 .eb .el{font-size:9px;color:#64748b;}
@@ -75,13 +74,13 @@ body{background:#0a0e17;font-family:-apple-system,'PingFang SC','Helvetica Neue'
     <div class="dia">💎<span id="dC">200</span></div>
   </div>
   <div class="sb" id="sb"></div>
-  <div class="mapC" id="mapC"><div class="grid" id="grid"></div></div>
-  <div class="eb" id="eb" style="display:none"><span class="el">📈效率</span><span class="ev" id="ev">x1.0</span></div>
+  <div class="mapC" id="mapC"><svg id="svgM"></svg></div>
+  <div class="eb" id="eb" style="display:none"><span class="el">📈合并效率</span><span class="ev" id="ev">x1.0</span></div>
   <div class="bb">
     <div class="ir" id="ir"></div>
     <div class="ba">
       <button class="bm">⚡5:00</button>
-      <button class="bf" id="helpB">🎯选领地→点目标</button>
+      <button class="bf" id="helpB">🎯点击领地群出兵</button>
       <button class="bh" id="adB">📺+20💎</button>
     </div>
   </div>
@@ -90,133 +89,10 @@ body{background:#0a0e17;font-family:-apple-system,'PingFang SC','Helvetica Neue'
 <script>
 // ===== CONFIG =====
 const PN=['你','蓝方','绿方','橙方'], PC=['#ef4444','#3b82f6','#22c55e','#f97316'];
-const GRID=9, CELL_SIZE=46, GAP=2;
-const TOTAL_T=GRID*GRID; // 81
-
-// Player starts: 4 corners each with 4 territories
-const PSTARTS={
-  0:[0,1,9,10],           // top-left
-  1:[8,17,7,16],          // top-right  (col 7,8 rows 0,1)
-  2:[72,73,63,64],        // bottom-left (row 7,8 col 0,1) 
-  3:[80,79,71,70],        // bottom-right (row 7,8 col 7,8)
-};
-
-function idFromRC(r,c){return r*GRID+c;}
-function rcFromId(id){return{r:Math.floor(id/GRID),c:id%GRID};}
-
-// Build territory data
-const TERRITORIES=[];
-for(let r=0;r<GRID;r++)for(let c=0;c<GRID;c++){
-  const id=r*GRID+c;
-  const n=[];
-  if(r>0)n.push(idFromRC(r-1,c));
-  if(r<GRID-1)n.push(idFromRC(r+1,c));
-  if(c>0)n.push(idFromRC(r,c-1));
-  if(c<GRID-1)n.push(idFromRC(r,c+1));
-  TERRITORIES.push({id, r, c, n});
-}
-
-// ===== STATE =====
-let G={
-  pl:[],t:[],sel:null,cp:0,tl:300,dia:200,run:true,over:false,
-  battles:{}, // id -> {progress, atkOwner, atkTroops, defTroops, uid}
-  _buid:0,
-};
-
-// ===== HELPERS =====
-function findR(pid){
-  const v=new Set(),r=[];
-  G.t.filter(t=>t.owner===pid).forEach(t=>{
-    if(v.has(t.id))return;
-    const reg=[],q=[t.id];v.add(t.id);
-    while(q.length){const c=q.shift();reg.push(c);
-      G.t[c].n.forEach(n=>{const nt=G.t[n];if(nt.owner===pid&&!v.has(n)){v.add(n);q.push(n);}});}
-    r.push(reg);
-  });return r;
-}
-function rTr(ids){return ids.reduce((s,i)=>s+Math.floor(G.t[i].troops),0);}
-function eff(l){return l<=1?1:1+(l-1)*0.08;}
-function tProd(pid){const p=G.pl[pid];if(!p||!p.alive||!p.lands)return 0;return Math.floor(p.lands*2*eff(p.lands));}
-function adj(a,b){for(const sa of a)for(const n of G.t[sa].n)if(b.includes(n))return true;return false;}
-
-// ===== RENDER =====
-let _cellSize=CELL_SIZE,_gap=GAP;
-
-function render(){
-  const grid=document.getElementById('grid');
-  const avail=Math.min(document.getElementById('mapC').clientWidth-8,document.getElementById('mapC').clientHeight-8);
-  const totalW=GRID*CELL_SIZE+(GRID-1)*GAP;
-  const scale=Math.min(1,avail/totalW);
-  _cellSize=CELL_SIZE*scale; _gap=GAP*scale;
-  const gw=GRID*_cellSize+(GRID-1)*_gap;
-  grid.style.width=gw+'px';grid.style.height=gw+'px';
-
-  let html='';
-  for(let r=0;r<GRID;r++)for(let c=0;c<GRID;c++){
-    const id=r*GRID+c,t=G.t[id];
-    const x=c*(_cellSize+_gap),y=r*(_cellSize+_gap);
-    const col=t.owner<0?'#334155':PC[t.owner];
-    const isSel=G.sel&&G.sel.player===G.cp&&G.sel.tid===id;
-    const borderCol=t.owner<0?'#475569':PC[t.owner];
-    const opacity=t.owner<0?.6:1;
-    const btl=G.battles[id];
-
-    let extra='';
-    if(isSel)extra+=' sel';
-    if(G.sel&&G.sel.player===G.cp&&t.owner!==G.cp&&t.owner>=0&&adj([G.sel.tid],[id]))extra+=' tgt';
-    // Also highlight neutral adjacent
-    if(G.sel&&G.sel.player===G.cp&&t.owner<0&&adj([G.sel.tid],[id]))extra+=' tgt';
-
-    const troops=Math.floor(t.troops);
-    const bar=btl?Math.floor(btl.progress*100):-1;
-
-    html+=`<div class="cell${extra}" data-id="${id}" style="left:${x}px;top:${y}px;width:${_cellSize}px;height:${_cellSize}px;
-background:radial-gradient(circle at 30% 30%,${col}cc,${col}99);border:2px solid ${borderCol};opacity:${opacity}">
-<div class="ct">${troops}</div>
-<div class="cs">${t.owner<0?'':PN[t.owner][0]}</div>
-${bar>=0?`<div class="battle-bar" style="width:100%"><div class="fill" style="width:${bar}%"></div></div>`:''}
-</div>`;
-  }
-  grid.innerHTML=html;
-
-  // Click handler
-  grid.querySelectorAll('.cell').forEach(el=>{
-    el.onclick=()=>onClick(parseInt(el.dataset.id));
-  });
-
-  // Update player count in header
-  const p=G.pl[G.cp];
-  document.getElementById('myT').textContent=Math.floor(p.troops);
-  document.getElementById('dC').textContent=G.dia;
-}
-
-// ===== INPUT =====
-function onClick(id){
-  if(G.over||!G.run)return;
-  const t=G.t[id];
-  // Click own territory
-  if(t.owner===G.cp){
-    if(G.sel&&G.sel.player===G.cp&&G.sel.tid===id){G.sel=null;render();return;}
-    G.sel={player:G.cp, tid:id};
-    render();return;
-  }
-  // Attack if selected
-  if(G.sel&&G.sel.player===G.cp&&adj([G.sel.tid],[id])){
-    const src=G.t[G.sel.tid],cnt=Math.floor(src.troops/2);
-    if(cnt<=0){show('兵力不足');return;}
-    if(G.battles[id]){show('该领地正在战斗中');return;}
-    // Start battle
-    const uid=++G._buid;
-    G.battles[id]={progress:0,atkOwner:G.cp,atkTroops:cnt,defTroops:Math.floor(t.troops),uid,srcId:G.sel.tid};
-    src.troops-=cnt;
-    show('⚔️进攻 '+getName(id)+'！');
-    render();updStats();renderSB();updUI();updEB();
-    return;
-  }
-  if(G.sel)show('目标不相邻');else show('点击己方领地选中');
-}
-
-function getName(id){const names=['王城','铁壁','狼烟','哨塔','虎踞','龙盘','隘口','箭楼','烽燧',
+const GRID=9, CS=42, GAP=3;
+const RGBA=['rgba(239,68,68,','rgba(59,130,246,','rgba(34,197,94,','rgba(249,115,22,'];
+const PSTARTS={0:[0,1,9,10],1:[7,8,16,17],2:[63,64,72,73],3:[70,71,79,80]};
+const NAMES=['王城','铁壁','狼烟','哨塔','虎踞','龙盘','隘口','箭楼','烽燧',
   '兵营','校场','武库','粮仓','马厩','瓮城','角楼','箭塔','壕沟',
   '前哨','斥候','驿站','关卡','隧','寨','屯','营','垒',
   '东市','西市','南仓','北库','左营','右营','前军','后军','中军',
@@ -226,155 +102,222 @@ function getName(id){const names=['王城','铁壁','狼烟','哨塔','虎踞','
   '小满','芒种','小暑','大暑','处暑','白露','霜降','小雪','大雪',
   '甲子','乙丑','丙寅','丁卯','戊辰','己巳','庚午','辛未','壬申',
   '癸酉','甲戌','乙亥','丙子','丁丑','戊寅','己卯','庚辰','辛巳'];
-  return names[id]||'第'+(id+1)+'格';}
 
-// ===== BATTLE TICK =====
+// ===== STATE =====
+let G={pl:[],t:[],selReg:null,cp:0,tl:300,dia:200,run:true,over:false,battles:{},_buid:0};
+
+// ===== CELL UTILITIES =====
+function id(r,c){return r*GRID+c;}
+function rc(i){return{r:Math.floor(i/GRID),c:i%GRID};}
+function cell(r,c){return G.t[id(r,c)];}
+
+// Build territories
+const ALL_TERRITORIES=[];
+for(let r=0;r<GRID;r++)for(let c=0;c<GRID;c++){
+  const n=[];
+  if(r>0)n.push(id(r-1,c));if(r<GRID-1)n.push(id(r+1,c));
+  if(c>0)n.push(id(r,c-1));if(c<GRID-1)n.push(id(r,c+1));
+  ALL_TERRITORIES.push({id:id(r,c),r,c,n});
+}
+
+// ===== REGION LOGIC =====
+function findRegions(pid){
+  const v=new Set(),r=[];
+  G.t.filter(t=>t.owner===pid).forEach(t=>{
+    if(v.has(t.id))return;
+    const reg=[],q=[t.id];v.add(t.id);
+    while(q.length){const c=q.shift();reg.push(c);G.t[c].n.forEach(n=>{const nt=G.t[n];if(nt.owner===pid&&!v.has(n)){v.add(n);q.push(n);}});}
+    r.push(reg);
+  });return r;
+}
+
+function regBounds(ids){
+  let r1=GRID,r2=-1,c1=GRID,c2=-1;
+  ids.forEach(i=>{const{r,c}=rc(i);r1=Math.min(r1,r);r2=Math.max(r2,r);c1=Math.min(c1,c);c2=Math.max(c2,c);});
+  return{r1,r2,c1,c2};
+}
+
+function regTroops(ids){return ids.reduce((s,i)=>s+Math.floor(G.t[i].troops),0);}
+
+function regionsAdjacent(idsA,idsB){
+  for(const a of idsA)for(const n of G.t[a].n)if(idsB.includes(n))return true;
+  return false;
+}
+
+// ===== RENDER =====
+function render(){
+  const c=document.getElementById('mapC'),svg=document.getElementById('svgM');
+  const avail=Math.min(c.clientWidth-8,c.clientHeight-8);
+  const gw=GRID*CS+(GRID-1)*GAP,scl=Math.min(1,avail/gw);
+  const sz=CS*scl,g=GAP*scl,offX=(c.clientWidth-(GRID*sz+(GRID-1)*g))/2,offY=(c.clientHeight-(GRID*sz+(GRID-1)*g))/2;
+
+  // Draw grid lines
+  let svgHTML='';
+  for(let r=0;r<=GRID;r++)for(let c=0;c<=GRID;c++){
+    if(r<GRID)svgHTML+=`<line x1="${offX+c*(sz+g)}" y1="${offY+r*(sz+g)}" x2="${offX+c*(sz+g)}" y2="${offY+r*(sz+g)+sz}" stroke="rgba(255,255,255,.06)" stroke-width="1"/>`;
+    if(c<GRID)svgHTML+=`<line x1="${offX+c*(sz+g)}" y1="${offY+r*(sz+g)}" x2="${offX+c*(sz+g)+sz}" y2="${offY+r*(sz+g)}" stroke="rgba(255,255,255,.06)" stroke-width="1"/>`;
+  }
+  svg.innerHTML=svgHTML;
+
+  // Remove old blocks
+  document.querySelectorAll('.region-block').forEach(el=>el.remove());
+
+  // Compute regions for ALL players and render
+  G.pl.forEach((p,pi)=>{
+    if(!p.alive)return;
+    const regions=findRegions(pi);
+    regions.forEach(reg=>{
+      const {r1,r2,c1,c2}=regBounds(reg);
+      const troops=regTroops(reg);
+      const x=offX+c1*(sz+g)-2,y=offY+r1*(sz+g)-2,w=(c2-c1+1)*sz+(c2-c1)*g+4,h=(r2-r1+1)*sz+(r2-r1)*g+4;
+
+      const el=document.createElement('div');
+      el.className='region-block';
+      el.style.left=x+'px';el.style.top=y+'px';
+      el.style.width=w+'px';el.style.height=h+'px';
+      el.style.background=`radial-gradient(ellipse at 40% 40%,${RGBA[pi]}0.4), ${RGBA[pi]}0.2)`;
+      el.style.borderColor=PC[pi];
+
+      // Selection & targeting
+      const isSel=G.selReg&&G.selReg.player===pi&&G.selReg.key===reg.sort((a,b)=>a-b).join(',');
+      const isTgt=G.selReg&&G.selReg.player===G.cp&&pi!==G.cp&&regionsAdjacent(G.selReg.ids,reg);
+      if(isSel)el.classList.add('sel');
+      if(isTgt)el.classList.add('tgt');
+
+      // Battle progress
+      let battleProgress=-1;
+      for(const id of reg){if(G.battles[id]){battleProgress=G.battles[id].progress;break;}}
+
+      const pn=pi===G.cp?'你的领地':PN[pi]+'领土';
+      el.innerHTML=`<div class="rt">${Math.floor(troops)}</div><div class="rn">${pn}</div><div class="rr">${reg.length}块合并</div>`+
+        (battleProgress>=0?`<div class="bbar"><div class="fill" style="width:${Math.floor(battleProgress*100)}%"></div></div>`:'');
+
+      el.onclick=()=>onRegionClick(reg,pi);
+      c.appendChild(el);
+    });
+  });
+
+  // Update header
+  const p=G.pl[G.cp];
+  document.getElementById('myT').textContent=Math.floor(p.troops);
+  document.getElementById('dC').textContent=G.dia;
+}
+
+// ===== INPUT =====
+function onRegionClick(reg,player){
+  if(G.over||!G.run)return;
+  const key=reg.sort((a,b)=>a-b).join(',');
+
+  if(player===G.cp){
+    if(G.selReg&&G.selReg.player===G.cp&&G.selReg.key===key){
+      G.selReg=null;render();return;
+    }
+    G.selReg={ids:reg,player,key};
+    render();return;
+  }
+
+  if(G.selReg&&G.selReg.player===G.cp&&regionsAdjacent(G.selReg.ids,reg)){
+    // Check if any target territory is in battle
+    for(const id of reg){if(G.battles[id]){show('该区域正在战斗中');return;}}
+    const total=regTroops(G.selReg.ids),cnt=Math.floor(total/2);
+    if(cnt<=0){show('兵力不足');return;}
+    // Pick first territory in target region that's adjacent
+    let tgtId=null;
+    for(const sa of G.selReg.ids){for(const n of G.t[sa].n){if(reg.includes(n)){tgtId=n;break;}}if(tgtId!==null)break;}
+    // Deduct troops proportionally from source region
+    const srcTs=G.selReg.ids.map(i=>G.t[i]);let rem=cnt;
+    for(const t of srcTs){if(rem<=0)break;const sh=Math.min(Math.floor(t.troops),Math.ceil(rem/srcTs.filter(x=>x.troops>0).length));t.troops-=sh;rem-=sh;}
+    if(rem>0&&srcTs.length>0)srcTs[0].troops-=rem;
+    // Start battle
+    const uid=++G._buid;
+    G.battles[tgtId]={progress:0,atkOwner:G.cp,atkTroops:cnt,defTroops:Math.floor(G.t[tgtId].troops),uid,srcIds:G.selReg.ids.slice()};
+    show('⚔️进攻！');
+    render();updStats();renderSB();updUI();updEB();
+    return;
+  }
+
+  if(G.selReg)show('目标不相邻');else show('点击己方领土选中');
+}
+
+// ===== BATTLE SYSTEM =====
 function tickBattles(){
   for(const id in G.battles){
     const b=G.battles[id],dst=G.t[id];
-    const src=G.t[b.srcId];
-    // Both sides lose troops per tick
-    const dmgAtk=Math.min(b.atkTroops,Math.max(1,Math.floor(b.defTroops*0.08)+1));
-    const dmgDef=Math.min(b.defTroops,Math.max(1,Math.floor(b.atkTroops*0.06)+1));
-    b.atkTroops-=dmgDef;
-    b.defTroops-=dmgAtk;
-    // Progress advances based on attacker advantage
+    if(b.defTroops===undefined)continue;
+    const dmgAtk=Math.min(b.atkTroops,Math.max(1,Math.floor(b.defTroops*0.1)+1));
+    const dmgDef=Math.min(b.defTroops,Math.max(1,Math.floor(b.atkTroops*0.07)+1));
+    b.atkTroops-=dmgDef;b.defTroops-=dmgAtk;
     const ratio=b.atkTroops/Math.max(1,b.defTroops+b.atkTroops);
-    b.progress+=ratio*0.06-0.03; // net: when ratio>.5, progress increases
+    b.progress+=ratio*0.06-0.025;
     b.progress=Math.max(0,Math.min(1,b.progress));
 
-    if(b.progress>=1){
-      // Attacker wins!
-      const remaining=Math.max(1,b.atkTroops);
-      dst.owner=b.atkOwner;
-      dst.troops=remaining;
+    if(b.progress>=1||b.defTroops<=0){
+      dst.owner=b.atkOwner;dst.troops=Math.max(1,b.atkTroops);
       delete G.battles[id];
-      show('🔥攻占 '+getName(id));
-    } else if(b.atkTroops<=0){
-      // Defender wins
+      show('🔥攻占'+NAMES[id]);
+    }else if(b.atkTroops<=0){
       dst.troops=Math.max(1,b.defTroops);
       delete G.battles[id];
       show('💥进攻被击退');
-    } else if(b.defTroops<=0){
-      // Attacker wins (defender wiped)
-      dst.owner=b.atkOwner;
-      dst.troops=Math.max(1,b.atkTroops);
-      delete G.battles[id];
-      show('🔥攻占 '+getName(id));
-    } else {
-      // Update territory troops to show current battle state
-      dst.troops=b.defTroops;
-      // Also reflect attacker troops in src territory (they're "committed")
+    }else{
+      dst.troops=Math.max(1,b.defTroops);
     }
   }
 }
 
 // ===== AI =====
 let aiT=null;
-function startAI(){stopAI();aiT=setInterval(()=>{
-  for(let i=1;i<G.pl.length;i++)if(G.pl[i].alive)aiTurn(i);
-},2500);}
+function startAI(){stopAI();aiT=setInterval(()=>{for(let i=1;i<G.pl.length;i++)if(G.pl[i].alive)aiTurn(i);},2800);}
 function stopAI(){if(aiT){clearInterval(aiT);aiT=null;}}
-
 function aiTurn(pid){
   if(G.over||!G.run)return;
-  const myT=G.t.filter(t=>t.owner===pid&&t.troops>8);
-  if(!myT.length)return;
-  const shuffled=[...myT].sort(()=>Math.random()-0.5);
-  for(const t of shuffled){
-    const targets=t.n.filter(n=>{
-      const nt=G.t[n];
-      return nt.owner!==pid&&!G.battles[n]&&nt.troops<Math.floor(t.troops*0.8);
-    });
+  const regions=findRegions(pid);
+  for(const reg of regions.sort(()=>Math.random()-0.5)){
+    const total=regTroops(reg);
+    if(total<12)continue;
+    const targets=[];const regSet=new Set(reg);
+    for(const sid of reg)for(const n of G.t[sid].n){const nt=G.t[n];if(nt.owner!==pid&&!G.battles[n]&&!targets.some(t=>t.id===n))targets.push({id:n,troops:nt.troops,owner:nt.owner});}
     if(!targets.length)continue;
-    const tgt=targets.sort((a,b)=>G.t[a].troops-G.t[b].troops)[0];
-    const cnt=Math.floor(t.troops/2);
-    if(cnt>5){
-      const uid=++G._buid;
-      G.battles[tgt]={progress:0,atkOwner:pid,atkTroops:cnt,defTroops:Math.floor(G.t[tgt].troops),uid,srcId:t.id};
-      t.troops-=cnt;
-      G.t[tgt].troops=G.battles[tgt].defTroops; // sync
-      break;
-    }
+    targets.sort((a,b)=>{if(a.owner<0&&b.owner>=0)return -1;if(a.owner>=0&&b.owner<0)return 1;return a.troops-b.troops;});
+    const tgt=targets[0],cnt=Math.min(Math.floor(total*0.5),total-5);
+    if(cnt<=5)continue;
+    // Deduct
+    const srcTs=reg.map(i=>G.t[i]);let rem=cnt;
+    for(const t of srcTs){if(rem<=0)break;const sh=Math.min(Math.floor(t.troops),Math.ceil(rem/srcTs.filter(x=>x.troops>0).length));t.troops-=sh;rem-=sh;}
+    if(rem>0&&srcTs.length>0)srcTs[0].troops-=rem;
+    const uid=++G._buid;
+    G.battles[tgt.id]={progress:0,atkOwner:pid,atkTroops:cnt,defTroops:Math.floor(G.t[tgt.id].troops),uid,srcIds:reg.slice()};
+    break;
   }
 }
 
 // ===== UPDATE =====
-function updStats(){
-  G.pl.forEach(p=>{p.troops=0;p.lands=0;});
-  G.t.forEach(t=>{if(t.owner>=0){G.pl[t.owner].troops+=Math.floor(t.troops);G.pl[t.owner].lands++;}});
-}
-function updUI(){
-  const p=G.pl[G.cp];
-  document.getElementById('myT').textContent=Math.floor(p.troops);
-  document.getElementById('dC').textContent=G.dia;
-  const timer=document.getElementById('timer'),m=Math.floor(G.tl/60),s=Math.floor(G.tl%60);
-  timer.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
-  timer.classList.toggle('warn',G.tl<60);
-}
-function updEB(){
-  const bar=document.getElementById('eb'),val=document.getElementById('ev'),p=G.pl[G.cp];
-  if(p.alive&&p.lands>0){val.textContent='+'+tProd(0)+'/秒(x'+eff(p.lands).toFixed(2)+')';bar.style.display='flex';}
-  else bar.style.display='none';
-}
-function renderSB(){
-  document.getElementById('sb').innerHTML=G.pl.map((p,i)=>
-    '<div class="sbi'+(i===G.cp?' me':'')+'" style="'+(p.alive?'':'opacity:.3')+'"><span class="sd" style="background:'+p.color+'"></span><span class="sn">'+p.name+(p.alive?'':'💀')+'</span><span class="st">'+Math.floor(p.troops)+'</span><span class="sl">('+p.lands+')</span><span class="se">x'+(p.alive?eff(p.lands).toFixed(2):'0')+'</span></div>'
-  ).join('');
-}
+function updStats(){G.pl.forEach(p=>{p.troops=0;p.lands=0;});G.t.forEach(t=>{if(t.owner>=0){G.pl[t.owner].troops+=Math.floor(t.troops);G.pl[t.owner].lands++;}});}
+function updUI(){const p=G.pl[G.cp];document.getElementById('myT').textContent=Math.floor(p.troops);document.getElementById('dC').textContent=G.dia;const timer=document.getElementById('timer'),m=Math.floor(G.tl/60),s=Math.floor(G.tl%60);timer.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');timer.classList.toggle('warn',G.tl<60);}
+function updEB(){const bar=document.getElementById('eb'),val=document.getElementById('ev'),p=G.pl[G.cp];if(p.alive&&p.lands>0){const e=1+(p.lands-1)*0.08;val.textContent='+'+Math.floor(p.lands*2*e)+'/秒(x'+e.toFixed(2)+')';bar.style.display='flex';}else bar.style.display='none';}
+function renderSB(){document.getElementById('sb').innerHTML=G.pl.map((p,i)=>'<div class="sbi'+(i===G.cp?' me':'')+'" style="'+(p.alive?'':'opacity:.3')+'"><span class="sd" style="background:'+p.color+'"></span><span class="sn">'+p.name+(p.alive?'':'💀')+'</span><span class="st">'+Math.floor(p.troops)+'</span><span class="sl">('+p.lands+')</span><span class="se">x'+(p.alive?(1+(p.lands-1)*0.08).toFixed(2):'0')+'</span></div>').join('');}
 function checkE(){const a=new Set();G.t.forEach(t=>{if(t.owner>=0)a.add(t.owner);if(G.battles[t.id])a.add(G.battles[t.id].atkOwner);});G.pl.forEach((p,i)=>{p.alive=a.has(i)||i===G.cp;});}
 function checkW(){if(G.over)return;const a=G.pl.filter(p=>p.alive);if(a.length<=1&&G.pl.some(p=>p.alive))end(a[0]?.id);}
-function end(wid){
-  G.over=true;G.run=false;stopAI();if(G.af){cancelAnimationFrame(G.af);G.af=null;}
-  const s=G.pl.map((p,i)=>({name:p.name,troops:Math.floor(p.troops),lands:p.lands,score:Math.floor(p.troops)+p.lands*10,alive:p.alive})).sort((a,b)=>b.score-a.score);
-  const rk=s.findIndex(x=>x.name===G.pl[G.cp].name)+1;
-  let m='🏆对局结束！\n'+(wid===G.cp?'🎉你赢了！':wid>=0?G.pl[wid].name+'获胜':'⚖️平局！')+'\n\n';
-  s.forEach((x,i)=>{m+=(['🥇','🥈','🥉'][i]||'#'+(i+1))+' '+x.name+(x.alive?'':'💀')+' 兵'+x.troops+' 地'+x.lands+' 总分'+x.score+'\n';});
-  m+='\n排名:'+rk+'/'+s.length;show(m);
-}
+function end(wid){G.over=true;G.run=false;stopAI();clearInterval(lt);lt=null;
+  const s=G.pl.map((p,i)=>({name:p.name,troops:Math.floor(p.troops),lands:p.lands,score:Math.floor(p.troops)+p.lands*10})).sort((a,b)=>b.score-a.score);
+  const rk=s.findIndex(x=>x.name===G.pl[G.cp].name)+1;let m='🏆对局结束！\n'+(wid===G.cp?'🎉你赢了！':wid>=0?G.pl[wid].name+'获胜':'⚖️平局！')+'\n\n';
+  s.forEach((x,i)=>{m+=(['🥇','🥈','🥉'][i]||'#'+(i+1))+' '+x.name+(x.alive?'':'💀')+' 兵'+x.troops+' 地'+x.lands+' 总分'+x.score+'\n';});m+='\n排名:'+rk+'/'+s.length;show(m);}
 
 // ===== ITEMS =====
-const SHOP=[{id:'c',name:'征兵令',p:50,l:2},{id:'s',name:'🛡护盾',p:100,l:1},{id:'a',name:'✈空袭',p:200,l:1},{id:'re',name:'📦征兵',p:120,l:1}];
-let iU={};
-function renderItems(){
-  document.getElementById('ir').innerHTML=SHOP.map(it=>'<div class="ib'+(iU[it.id]>=it.limit?' used':'')+'" data-id="'+it.id+'"><span>'+it.name+'</span><span class="ip">💎'+it.p+'</span></div>').join('');
-  document.querySelectorAll('.ib:not(.used)').forEach(b=>b.onclick=()=>useI(b.dataset.id));
-}
-function useI(id){
-  if(G.over)return;const item=SHOP.find(i=>i.id===id);if(!item)return;const u=iU[id]||0;
-  if(u>=item.l){show('❌已用尽');return;}if(G.dia<item.p){show('💎还差'+(item.p-G.dia));return;}
-  G.dia-=item.p;iU[id]=(iU[id]||0)+1;
-  if(id==='s'&&G.sel){const t=G.t[G.sel.tid];if(t.owner===G.cp){t._sh=1;show('🛡护盾！');setTimeout(()=>{t._sh=0;},8000);}else{show('先选中己方领地');G.dia+=item.p;iU[id]--;}}
-  else if(id==='s'){show('先选中领地');G.dia+=item.p;iU[id]--;}
-  else if(id==='a'){const targets=G.t.filter(t=>t.owner!==G.cp&&t.owner>=0);if(targets.length){const t=targets.sort((a,b)=>b.troops-a.troops)[0];let d=Math.min(50,Math.max(1,Math.floor(t.troops-1)));t.troops-=d;show('✈空袭 '+getName(t.id)+'! -'+d);render();renderSB();updUI();updEB();checkE();checkW();}else show('✈无目标');}
-  else if(id==='re'){if(G.sel){const t=G.t[G.sel.tid];if(t.owner===G.cp){t.troops+=30;show('📦+30援军');render();renderSB();updUI();updEB();}else{show('先选中己方领地');G.dia+=item.p;iU[id]--;}}else{show('先选中领地');G.dia+=item.p;iU[id]--;}}
-  else show('✅生效');
-  renderItems();updUI();
-}
+const SI=[{id:'s',name:'🛡护盾',p:100,l:1},{id:'a',name:'✈空袭',p:200,l:1},{id:'re',name:'📦征兵',p:120,l:1}];let iU={};
+function renderItems(){document.getElementById('ir').innerHTML=SI.map(it=>'<div class="ib'+(iU[it.id]>=it.l?' used':'')+'" data-id="'+it.id+'"><span>'+it.name+'</span><span class="ip">💎'+it.p+'</span></div>').join('');document.querySelectorAll('.ib:not(.used)').forEach(b=>b.onclick=()=>useI(b.dataset.id));}
+function useI(id){if(G.over)return;const it=SI.find(i=>i.id===id);if(!it)return;const u=iU[id]||0;if(u>=it.l){show('❌已用尽');return;}if(G.dia<it.p){show('💎还差'+(it.p-G.dia));return;}G.dia-=it.p;iU[id]=(iU[id]||0)+1;
+  if(id==='s'){if(!G.selReg||G.selReg.player!==G.cp){show('先选中己方领土');G.dia+=it.p;iU[id]--;return;}G.selReg.ids.forEach(i=>{G.t[i]._sh=1;});show('🛡护盾！');setTimeout(()=>{G.selReg&&G.selReg.ids.forEach(i=>{G.t[i]._sh=0;});},8000);}
+  else if(id==='a'){const t=G.t.filter(t=>t.owner!==G.cp&&t.owner>=0);if(t.length){const tg=t.sort((a,b)=>b.troops-a.troops)[0];let d=Math.min(50,Math.max(1,Math.floor(tg.troops-1)));tg.troops-=d;show('✈空袭!'+(-d));render();renderSB();updUI();updEB();checkE();checkW();}else show('✈无目标');}
+  else if(id==='re'){if(!G.selReg||G.selReg.player!==G.cp){show('先选中己方领土');G.dia+=it.p;iU[id]--;return;}G.selReg.ids.forEach(i=>{G.t[i].troops+=30/G.selReg.ids.length;});show('📦+30援军');render();renderSB();updUI();updEB();}
+  renderItems();updUI();}
 
 // ===== GAME LOOP =====
 let lt=null;
-function startL(){
-  stopL();
-  lt=setInterval(()=>{
-    if(G.over||!G.run)return;
-    G.tl-=1;if(G.tl<=0){G.tl=0;endByT();return;}
-
-    // Battle ticks (every second)
-    tickBattles();
-
-    // Production
-    G.pl.forEach((p,pi)=>{
-      if(!p.alive||!p.lands)return;
-      const prod=tProd(pi),owned=G.t.filter(t=>t.owner===pi);
-      if(!owned.length)return;
-      const per=prod/owned.length;
-      owned.forEach(t=>{if(!G.battles[t.id])t.troops+=per;});
-    });
-
-    updStats();render();renderSB();updUI();updEB();checkE();checkW();
-  },1000);
-}
+function startL(){stopL();lt=setInterval(()=>{if(G.over||!G.run)return;G.tl-=1;if(G.tl<=0){G.tl=0;endByT();return;}
+  tickBattles();
+  G.pl.forEach((p,pi)=>{if(!p.alive||!p.lands)return;const owned=G.t.filter(t=>t.owner===pi);if(!owned.length)return;const e=eff=p.lands;const prod=Math.floor(p.lands*2*(1+(p.lands-1)*0.08));const per=prod/owned.length;owned.forEach(t=>{if(!G.battles[t.id])t.troops+=per;});});
+  updStats();render();renderSB();updUI();updEB();checkE();checkW();},1000);}
 function stopL(){if(lt){clearInterval(lt);lt=null;}}
 function endByT(){const s=G.pl.map((p,i)=>({id:i,score:Math.floor(p.troops)+p.lands*10})).sort((a,b)=>b.score-a.score);end(s[0].id);}
 
@@ -383,21 +326,15 @@ let tt=null;function show(msg){document.querySelectorAll('.toast').forEach(el=>e
 
 // ===== EVENTS =====
 document.getElementById('adB').onclick=()=>{if(G.over)return;G.dia+=20;show('📺+20💎');updUI();};
-document.getElementById('helpB').onclick=()=>show('🎯点击己方领地选中(黄框)→再点相邻目标出兵');
+document.getElementById('helpB').onclick=()=>show('🎯点击己方合并领土选中→点击相邻目标出兵(自动半兵)');
 
 // ===== INIT =====
 function init(){
-  //v=20260608.1
   G.pl=PN.map((n,i)=>({id:i,name:n,color:PC[i],troops:0,lands:0,alive:true}));
-  G.t=TERRITORIES.map(t=>{
-    let owner=-1;
-    for(const [pid,starts] of Object.entries(PSTARTS)){if(starts.includes(t.id)){owner=parseInt(pid);break;}}
-    return{...t,owner,troops:owner>=0?18:Math.floor(Math.random()*4)+3,_sh:0};
-  });
-  G.sel=null;G.tl=300;G.dia=200;G.run=true;G.over=false;G.battles={};G._buid=0;
+  G.t=ALL_TERRITORIES.map(t=>{let o=-1;for(const[p,s]of Object.entries(PSTARTS))if(s.includes(t.id)){o=parseInt(p);break;}return{...t,owner:o,troops:o>=0?18:Math.floor(Math.random()*4)+3,_sh:0};});
+  G.selReg=null;G.tl=300;G.dia=200;G.run=true;G.over=false;G.battles={};G._buid=0;
   updStats();render();renderSB();renderItems();updUI();updEB();
-  startL();startAI();
-}
+  startL();startAI();}
 init();
 </script>
 </body>

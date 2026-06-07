@@ -165,8 +165,8 @@ function drawOutlines(svg, sz, gp, ox, oy){
         if(!l)lines.push(`${x} ${y+sz} ${x} ${y}`);        // left
       }
       if(!lines.length)return;
-      const isSel=S.sel&&S.sel.tid!==-1&&reg.includes(S.sel.tid);
-      const isTgt=S.sel&&S.sel.player===S.cp&&pi!==S.cp&&adj([S.sel.tid],reg);
+      const isSel=S.sel&&S.sel.reg&&S.sel.reg.length===reg.length&&S.sel.reg.every(function(v){return reg.includes(v);});
+      const isTgt=S.sel&&S.sel.player===S.cp&&pi!==S.cp&&adj(S.sel.reg,reg);
       const col=isSel?'#fff':PC[pi];
       const w=isSel?3:2;
       const op=isTgt ? .8 : .5;
@@ -195,8 +195,8 @@ function render(){
   for(let r=0;r<G;r++)for(let c=0;c<G;c++){
     const i=r*G+c,t=S.t[i];
     const x=c*(sz+gp),y=r*(sz+gp);
-    const isSel=S.sel&&S.sel.tid===i;
-    const isTgt=S.sel&&S.sel.player===S.cp&&t.owner!==S.cp&&adj([S.sel.tid],[i]);
+    const isSel=S.sel&&S.sel.reg&&S.sel.reg.includes(i);
+    const isTgt=S.sel&&S.sel.player===S.cp&&t.owner!==S.cp&&adj(S.sel.reg,[i]);
     const owned=t.owner>=0;
     const cls=`cell${owned?' owned p'+t.owner:' neutral'}${isSel?' sel':''}${isTgt?' tgt':''}`;
     const bt=S.battles[i];
@@ -222,7 +222,7 @@ function render(){
       let sx=0,sy=0;reg.forEach(i=>{sx+=rc(i).c;sy+=rc(i).r;});sx/=reg.length;sy/=reg.length;
       const troops=rTr(reg);
       const el=document.createElement('div');
-      el.className='rl'+(S.sel&&reg.includes(S.sel.tid)?' sel':'');
+      el.className="rl"+(S.sel&&S.sel.reg&&S.sel.reg.length===reg.length&&S.sel.reg.every(function(v){return reg.includes(v);})?" sel":"");
       el.style.left=(sx*(sz+gp)+ox+sz/2)+'px';
       el.style.top=(sy*(sz+gp)+oy+sz/2)+'px';
       el.innerHTML=`<div class="rt">${Math.floor(troops)}</div><div class="rn">${reg.length}块合并</div>`;
@@ -237,49 +237,75 @@ function render(){
   document.getElementById('dC').textContent=S.dia;
 }
 
-// ===== INPUT =====
+// ===== INPUT (Region-based) =====
+function findRegById(id){
+  const t=S.t[id];
+  if(t.owner<0)return null;
+  const rgs=regs(t.owner);
+  return rgs.find(function(r){return r.includes(id);})||null;
+}
 function onCell(id){
   if(S.over||!S.run)return;
   const t=S.t[id];
   if(t.owner===S.cp){
-    S.sel=t.owner>=0?{player:S.cp,tid:id}:null;
+    const reg=findRegById(id);
+    if(reg){
+      const key=reg.slice().sort(function(a,b){return a-b;}).join(',');
+      if(S.sel&&S.sel.player===S.cp&&S.sel.key===key){S.sel=null;render();return;}
+      S.sel={player:S.cp,reg:reg,key:key};
+    }else{
+      if(S.sel&&S.sel.player===S.cp&&S.sel.tid===id){S.sel=null;render();return;}
+      S.sel={player:S.cp,reg:[id],key:id+'',tid:id};
+    }
     render();return;
   }
-  if(S.sel&&S.sel.player===S.cp&&adj([S.sel.tid],[id])){
+  if(S.sel&&S.sel.player===S.cp){
+    const srcReg=S.sel.reg;
+    if(!adj(srcReg,[id])){show('目标不相邻');return;}
     if(S.battles[id]){show('正在战斗中');return;}
-    const src=S.t[S.sel.tid],cnt=Math.floor(src.troops/2);
-    if(cnt<=0){show('兵力不足');return;}
-    const uid=++S._buid;
-    S.battles[id]={progress:0,atkOwner:S.cp,atkTroops:cnt,defTroops:Math.floor(t.troops),uid,srcId:S.sel.tid};
-    src.troops-=cnt;
+    // Take troops from the entire region
+    var srcTs=[];var total=0;
+    for(var si=0;si<srcReg.length;si++){var st=S.t[srcReg[si]];if(st.troops>1){total+=Math.floor(st.troops);srcTs.push(st);}}
+    var cnt=Math.floor(total/2);
+    if(cnt<=0||!srcTs.length){show('兵力不足');return;}
+    var rem=cnt;
+    for(var si=0;si<srcTs.length;si++){if(rem<=0)break;var sh=Math.min(Math.floor(srcTs[si].troops),Math.ceil(rem/srcTs.length));srcTs[si].troops-=sh;rem-=sh;}
+    if(rem>0&&srcTs.length>0)srcTs[0].troops-=rem;
+    var uid=++S._buid;
+    S.battles[id]={progress:0,atkOwner:S.cp,atkTroops:cnt,defTroops:Math.floor(t.troops),uid,srcIds:srcReg.slice()};
     show('⚔️进攻！');
     render();updStats();renderSB();updUI();updEB();
     return;
   }
-  if(S.sel)show('目标不相邻');else show('点击己方领地选中');
+  show('点击己方领地选中');
 }
 function onRegion(reg,pi){
   if(S.over||!S.run)return;
   if(pi===S.cp){
-    const id=reg[0];
-    S.sel=S.sel&&S.sel.tid===reg[0]?null:{player:S.cp,tid:id};
+    var key=reg.slice().sort(function(a,b){return a-b;}).join(',');
+    if(S.sel&&S.sel.player===S.cp&&S.sel.key===key){S.sel=null;render();return;}
+    S.sel={player:S.cp,reg:reg,key:key};
     render();return;
   }
-  if(S.sel&&S.sel.player===S.cp&&adj([S.sel.tid],reg)){
-    // Find target cell
-    let tgtId=null;
-    for(const n of S.t[S.sel.tid].n)if(reg.includes(n)){tgtId=n;break;}
+  if(S.sel&&S.sel.player===S.cp){
+    if(!adj(S.sel.reg,reg)){show('目标不相邻');return;}
+    var tgtId=null;
+    for(var sa=0;sa<S.sel.reg.length;sa++)for(var ni=0;ni<S.t[S.sel.reg[sa]].n.length;ni++){var n=S.t[S.sel.reg[sa]].n[ni];if(reg.includes(n)){tgtId=n;break;}if(tgtId!==null)break;if(tgtId!==null)break;}
     if(!tgtId||S.battles[tgtId]){show('正在战斗中');return;}
-    const src=S.t[S.sel.tid],cnt=Math.floor(src.troops/2);
-    if(cnt<=0){show('兵力不足');return;}
-    const uid=++S._buid;
-    S.battles[tgtId]={progress:0,atkOwner:S.cp,atkTroops:cnt,defTroops:Math.floor(S.t[tgtId].troops),uid,srcId:S.sel.tid};
-    src.troops-=cnt;
+    var total=0;var srcTs=[];
+    for(var si=0;si<S.sel.reg.length;si++){var st=S.t[S.sel.reg[si]];if(st.troops>1){total+=Math.floor(st.troops);srcTs.push(st);}}
+    var cnt=Math.floor(total/2);
+    if(cnt<=0||!srcTs.length){show('兵力不足');return;}
+    var rem=cnt;
+    for(var si=0;si<srcTs.length;si++){if(rem<=0)break;var sh=Math.min(Math.floor(srcTs[si].troops),Math.ceil(rem/srcTs.length));srcTs[si].troops-=sh;rem-=sh;}
+    if(rem>0&&srcTs.length>0)srcTs[0].troops-=rem;
+    var uid=++S._buid;
+    S.battles[tgtId]={progress:0,atkOwner:S.cp,atkTroops:cnt,defTroops:Math.floor(S.t[tgtId].troops),uid,srcIds:S.sel.reg.slice()};
     show('⚔️进攻！');
     render();updStats();renderSB();updUI();updEB();
     return;
   }
-  if(S.sel)show('目标不相邻');else show('点击己方领地选中');
+  show('点击己方领地选中');
 }
 
 // ===== BATTLE =====

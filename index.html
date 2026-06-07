@@ -25,28 +25,48 @@ body{background:#0a0e17;font-family:-apple-system,'PingFang SC','Helvetica Neue'
 .sbi .sl{color:#64748b;font-size:8px;}
 .sbi .se{color:#4ade80;font-size:8px;}
 .sbi.me{background:rgba(56,189,248,.12);}
-
 .mapC{flex:1;position:relative;overflow:hidden;min-height:0;display:flex;align-items:center;justify-content:center;padding:4px;}
-.mapC svg{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}
 
-/* Region blocks */
-.region-block{
-  position:absolute;border-radius:6px;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;cursor:pointer;z-index:2;
-  text-shadow:0 2px 8px rgba(0,0,0,.8);border:3px solid;
-  transition:opacity .15s,border-color .15s,box-shadow .15s;
-  min-width:30px;min-height:30px;overflow:hidden;
+/* Individual cell grid */
+.cell-grid{position:relative;flex-shrink:0;}
+.cell{
+  position:absolute;border-radius:2px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:11px;font-weight:700;color:#fff;z-index:1;
+  border:1px solid rgba(255,255,255,.08);
+  transition:border-color .15s,opacity .15s;
+  text-shadow:0 1px 3px rgba(0,0,0,.6);
 }
-.region-block .rt{font-size:22px;font-weight:900;color:#fff;line-height:1.2;pointer-events:none;}
-.region-block .rn{font-size:10px;color:rgba(255,255,255,.5);pointer-events:none;}
-.region-block .rr{font-size:8px;color:rgba(255,255,255,.3);pointer-events:none;margin-top:1px;}
-.region-block.sel{box-shadow:0 0 0 3px rgba(255,255,255,.5),0 0 20px rgba(255,255,255,.15);z-index:4;}
-.region-block.tgt{animation:rgb .6s ease-in-out infinite;z-index:3;}
-@keyframes rgb{0%,100%{border-color:rgba(255,255,255,.6);box-shadow:0 0 12px rgba(255,255,255,.2);}50%{border-color:rgba(255,255,255,1);box-shadow:0 0 25px rgba(255,255,255,.4);}}
-.region-block .bbar{position:absolute;bottom:0;left:0;height:4px;background:rgba(0,0,0,.3);width:100%;}
-.region-block .bbar .fill{height:100%;background:linear-gradient(90deg,#fbbf24,#f59e0b);transition:width .3s;}
+.cell.neutral{background:rgba(51,65,85,.4);color:rgba(255,255,255,.3);border-color:rgba(255,255,255,.05);}
+.cell.owned{background:transparent;border-color:transparent;}
+.cell.owned.p0{background:rgba(239,68,68,.45);}
+.cell.owned.p1{background:rgba(59,130,246,.45);}
+.cell.owned.p2{background:rgba(34,197,94,.45);}
+.cell.owned.p3{background:rgba(249,115,22,.45);}
+.cell.sel{z-index:3;border-color:#fff!important;border-width:2px!important;}
+.cell.tgt{z-index:2;animation:cg .6s ease-in-out infinite;}
 
-.eb{position:absolute;top:0;left:50%;transform:translateX(-50%);z-index:5;display:flex;align-items:center;gap:5px;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);border-radius:0 0 8px 8px;padding:2px 10px 3px;border:1px solid rgba(255,255,255,.06);border-top:none;pointer-events:none;}
+/* Battle progress bar */
+.cell .cbar{position:absolute;bottom:1px;left:1px;height:3px;border-radius:1px;overflow:hidden;right:1px;background:rgba(0,0,0,.3);}
+.cell .cbar .cfill{height:100%;background:linear-gradient(90deg,#fbbf24,#f59e0b);transition:width .3s;}
+
+@keyframes cg{0%,100%{border-color:rgba(255,255,255,.4)}50%{border-color:rgba(255,255,255,.9)}}
+
+/* Region outline overlay (SVG) */
+.mapC svg{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:4;}
+
+/* Region troop label */
+.rl{
+  position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:5;pointer-events:auto;cursor:pointer;border-radius:8px;
+  background:rgba(0,0,0,.55);backdrop-filter:blur(4px);
+  border:2px solid rgba(255,255,255,.2);padding:4px 10px;
+  transform:translate(-50%,-50%);min-width:40px;text-align:center;
+}
+.rl .rt{font-size:18px;font-weight:900;color:#fff;line-height:1.2;text-shadow:0 1px 6px rgba(0,0,0,.6);}
+.rl .rn{font-size:8px;color:rgba(255,255,255,.4);}
+.rl.sel{border-color:#fff;box-shadow:0 0 12px rgba(255,255,255,.2);}
+
+.eb{position:absolute;top:0;left:50%;transform:translateX(-50%);z-index:6;display:flex;align-items:center;gap:5px;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);border-radius:0 0 8px 8px;padding:2px 10px 3px;border:1px solid rgba(255,255,255,.06);border-top:none;pointer-events:none;}
 .eb .el{font-size:9px;color:#64748b;}
 .eb .ev{font-size:12px;font-weight:900;color:#4ade80;}
 
@@ -74,13 +94,16 @@ body{background:#0a0e17;font-family:-apple-system,'PingFang SC','Helvetica Neue'
     <div class="dia">💎<span id="dC">200</span></div>
   </div>
   <div class="sb" id="sb"></div>
-  <div class="mapC" id="mapC"><svg id="svgM"></svg></div>
+  <div class="mapC" id="mapC">
+    <svg id="svgM"></svg>
+    <div class="cell-grid" id="cg"></div>
+  </div>
   <div class="eb" id="eb" style="display:none"><span class="el">📈合并效率</span><span class="ev" id="ev">x1.0</span></div>
   <div class="bb">
     <div class="ir" id="ir"></div>
     <div class="ba">
       <button class="bm">⚡5:00</button>
-      <button class="bf" id="helpB">🎯点击领地群出兵</button>
+      <button class="bf" id="helpB">🎯选领地→点目标</button>
       <button class="bh" id="adB">📺+20💎</button>
     </div>
   </div>
@@ -89,8 +112,7 @@ body{background:#0a0e17;font-family:-apple-system,'PingFang SC','Helvetica Neue'
 <script>
 // ===== CONFIG =====
 const PN=['你','蓝方','绿方','橙方'], PC=['#ef4444','#3b82f6','#22c55e','#f97316'];
-const GRID=9, CS=42, GAP=3;
-const RGBA=['rgba(239,68,68,','rgba(59,130,246,','rgba(34,197,94,','rgba(249,115,22,'];
+const G=9, CS=40, GP=3; // Grid 9, Cell Size, Gap
 const PSTARTS={0:[0,1,9,10],1:[7,8,16,17],2:[63,64,72,73],3:[70,71,79,80]};
 const NAMES=['王城','铁壁','狼烟','哨塔','虎踞','龙盘','隘口','箭楼','烽燧',
   '兵营','校场','武库','粮仓','马厩','瓮城','角楼','箭塔','壕沟',
@@ -104,235 +126,281 @@ const NAMES=['王城','铁壁','狼烟','哨塔','虎踞','龙盘','隘口','箭
   '癸酉','甲戌','乙亥','丙子','丁丑','戊寅','己卯','庚辰','辛巳'];
 
 // ===== STATE =====
-let G={pl:[],t:[],selReg:null,cp:0,tl:300,dia:200,run:true,over:false,battles:{},_buid:0};
+let S={pl:[],t:[],sel:null,cp:0,tl:300,dia:200,run:true,over:false,battles:{},_buid:0,_sz:0,_gp:0,_ox:0,_oy:0};
 
-// ===== CELL UTILITIES =====
-function id(r,c){return r*GRID+c;}
-function rc(i){return{r:Math.floor(i/GRID),c:i%GRID};}
-function cell(r,c){return G.t[id(r,c)];}
-
-// Build territories
-const ALL_TERRITORIES=[];
-for(let r=0;r<GRID;r++)for(let c=0;c<GRID;c++){
-  const n=[];
-  if(r>0)n.push(id(r-1,c));if(r<GRID-1)n.push(id(r+1,c));
-  if(c>0)n.push(id(r,c-1));if(c<GRID-1)n.push(id(r,c+1));
-  ALL_TERRITORIES.push({id:id(r,c),r,c,n});
+// ===== BUILD MAP =====
+const ALL_T=[];
+for(let r=0;r<G;r++)for(let c=0;c<G;c++){
+  const n=[];if(r>0)n.push(r*G+c-G);if(r<G-1)n.push(r*G+c+G);if(c>0)n.push(r*G+c-1);if(c<G-1)n.push(r*G+c+1);
+  ALL_T.push({id:r*G+c,r,c,n});
 }
 
-// ===== REGION LOGIC =====
-function findRegions(pid){
-  const v=new Set(),r=[];
-  G.t.filter(t=>t.owner===pid).forEach(t=>{
-    if(v.has(t.id))return;
-    const reg=[],q=[t.id];v.add(t.id);
-    while(q.length){const c=q.shift();reg.push(c);G.t[c].n.forEach(n=>{const nt=G.t[n];if(nt.owner===pid&&!v.has(n)){v.add(n);q.push(n);}});}
-    r.push(reg);
-  });return r;
-}
+function id(r,c){return r*G+c;}
+function rc(i){return{r:Math.floor(i/G),c:i%G};}
+function regs(pid){const v=new Set(),r=[];S.t.filter(t=>t.owner===pid).forEach(t=>{if(v.has(t.id))return;const q=[t.id];v.add(t.id);const reg=[];while(q.length){const c=q.shift();reg.push(c);S.t[c].n.forEach(n=>{const nt=S.t[n];if(nt.owner===pid&&!v.has(n)){v.add(n);q.push(n);}});}r.push(reg);});return r;}
+function rTr(ids){return ids.reduce((s,i)=>s+Math.floor(S.t[i].troops),0);}
+function adj(a,b){for(const sa of a)for(const n of S.t[sa].n)if(b.includes(n))return true;return false;}
 
-function regBounds(ids){
-  let r1=GRID,r2=-1,c1=GRID,c2=-1;
-  ids.forEach(i=>{const{r,c}=rc(i);r1=Math.min(r1,r);r2=Math.max(r2,r);c1=Math.min(c1,c);c2=Math.max(c2,c);});
-  return{r1,r2,c1,c2};
-}
-
-function regTroops(ids){return ids.reduce((s,i)=>s+Math.floor(G.t[i].troops),0);}
-
-function regionsAdjacent(idsA,idsB){
-  for(const a of idsA)for(const n of G.t[a].n)if(idsB.includes(n))return true;
-  return false;
+// Compute region outline path
+function regOutline(ids){
+  const set=new Set(ids);
+  const edges=[];
+  for(const i of ids){
+    const{r,c}=rc(i);
+    const u=set.has(r>0?id(r-1,c):-1),d=set.has(r<G-1?id(r+1,c):-1),l=set.has(c>0?id(r,c-1):-1),r2=set.has(c<G-1?id(r,c+1):-1);
+    if(!u&&l)edges.push({x1:c,y1:r,x2:c+1,y2:r}); // top-left corner
+    if(!u)edges.push({x1:c+1,y1:r,x2:c,y2:r}); // top edge
+    if(!u&&r2)edges.push({x1:c+1,y1:r,x2:c+1,y2:r}); // top-right corner
+    if(!r2&&!u)edges.push({x1:c+1,y1:r,x2:c+1,y2:r}); // right-top
+    if(!r2)edges.push({x1:c+1,y1:r+1,x2:c+1,y2:r}); // right edge
+    if(!r2&&d)edges.push({x1:c+1,y1:r+1,x2:c+1,y2:r+1}); // right-bottom corner
+    if(!d&&r2)edges.push({x1:c+1,y1:r+1,x2:c+1,y2:r+1}); // bottom-right
+    if(!d)edges.push({x1:c,y1:r+1,x2:c+1,y2:r+1}); // bottom edge
+    if(!d&&l)edges.push({x1:c,y1:r+1,x2:c,y2:r+1}); // bottom-left
+    if(!l&&!d)edges.push({x1:c,y1:r+1,x2:c,y2:r+1}); // left-bottom
+    if(!l)edges.push({x1:c,y1:r,x2:c,y2:r+1}); // left edge
+    if(!l&&u)edges.push({x1:c,y1:r,x2:c,y2:r}); // left-top corner
+  }
+  // Build SVG path from edges
+  if(!edges.length)return '';
+  // Remove duplicates (opposite direction cancels)
+  const edgeMap=new Map();
+  const key=(a,b)=>Math.min(a,b)+'-'+Math.max(a,b);
+  const dir=(a,b)=>`${a.x},${a.y}-${b.x},${b.y}`;
+  for(const e of edges){
+    const k=key(e,{x1:e.x2,y1:e.y2,x2:e.x1,y2:e.y1});
+    const d=dir({x:e.x1,y:e.y1},{x:e.x2,y:e.y2});
+    if(edgeMap.has(k)&&edgeMap.get(k)!==d)edgeMap.delete(k);
+    else edgeMap.set(k,d);
+  }
+  // Connect edges into path
+  const remaining=[...edgeMap.entries()].map(([k,v])=>{
+    const pts=k.split('-').map(s=>s.split(',').map(Number));
+    const d=v.split('-');
+    return {x1:pts[0][0],y1:pts[0][1],x2:pts[1][0],y2:pts[1][1]};
+  });
+  if(!remaining.length)return '';
+  // Sort into order
+  const ordered=[remaining.shift()];
+  while(remaining.length>0){
+    const last=ordered[ordered.length-1];
+    const idx=remaining.findIndex(e=>Math.abs(e.x1-last.x2)<.01&&Math.abs(e.y1-last.y2)<.01);
+    if(idx<0)break;
+    ordered.push(remaining.splice(idx,1)[0]);
+  }
+  const pad=.2;
+  const path=ordered.map((e,i)=>{
+    const x=(i===0?e.x1:e.x2)+pad,y=(i===0?e.y1:e.y2)+pad;
+    return `${i===0?'M':'L'}${x} ${y}`;
+  }).join(' ');
+  return path?path+' Z':'';
 }
 
 // ===== RENDER =====
+let _sz=0,_ox=0,_oy=0;
 function render(){
-  const c=document.getElementById('mapC'),svg=document.getElementById('svgM');
-  const avail=Math.min(c.clientWidth-8,c.clientHeight-8);
-  const gw=GRID*CS+(GRID-1)*GAP,scl=Math.min(1,avail/gw);
-  const sz=CS*scl,g=GAP*scl,offX=(c.clientWidth-(GRID*sz+(GRID-1)*g))/2,offY=(c.clientHeight-(GRID*sz+(GRID-1)*g))/2;
+  const mc=document.getElementById('mapC'),cg=document.getElementById('cg'),svg=document.getElementById('svgM');
+  const avail=Math.min(mc.clientWidth-8,mc.clientHeight-8);
+  const tw=G*CS+(G-1)*GP,scl=Math.min(1,avail/tw);
+  const sz=CS*scl,gp=GP*scl,ox=(mc.clientWidth-(G*sz+(G-1)*gp))/2,oy=(mc.clientHeight-(G*sz+(G-1)*gp))/2;
+  _sz=sz;_ox=ox;_oy=oy;
+  S._sz=sz;S._gp=gp;S._ox=ox;S._oy=oy;
 
-  // Draw grid lines
-  let svgHTML='';
-  for(let r=0;r<=GRID;r++)for(let c=0;c<=GRID;c++){
-    if(r<GRID)svgHTML+=`<line x1="${offX+c*(sz+g)}" y1="${offY+r*(sz+g)}" x2="${offX+c*(sz+g)}" y2="${offY+r*(sz+g)+sz}" stroke="rgba(255,255,255,.06)" stroke-width="1"/>`;
-    if(c<GRID)svgHTML+=`<line x1="${offX+c*(sz+g)}" y1="${offY+r*(sz+g)}" x2="${offX+c*(sz+g)+sz}" y2="${offY+r*(sz+g)}" stroke="rgba(255,255,255,.06)" stroke-width="1"/>`;
+  // ---- Cells ----
+  let chtml='';
+  for(let r=0;r<G;r++)for(let c=0;c<G;c++){
+    const i=r*G+c,t=S.t[i];
+    const x=c*(sz+gp)+ox,y=r*(sz+gp)+oy;
+    const isSel=S.sel&&S.sel.tid===i;
+    const isTgt=S.sel&&S.sel.player===S.cp&&t.owner!==S.cp&&adj([S.sel.tid],[i]);
+    const owned=t.owner>=0;
+    const cls=`cell${owned?' owned p'+t.owner:' neutral'}${isSel?' sel':''}${isTgt?' tgt':''}`;
+    const bt=S.battles[i];
+    const bar=bt?`<div class="cbar"><div class="cfill" style="width:${Math.floor(bt.progress*100)}%"></div></div>`:'';
+    chtml+=`<div class="${cls}" style="left:${x}px;top:${y}px;width:${sz}px;height:${sz}px" data-id="${i}">${owned?'':Math.floor(t.troops)}${bar}</div>`;
   }
+  cg.innerHTML=chtml;
+
+  // Cell click
+  cg.querySelectorAll('.cell').forEach(el=>{el.onclick=()=>onCell(parseInt(el.dataset.id));});
+
+  // ---- Region outlines (SVG) ----
+  let svgHTML='';
+  S.pl.forEach((p,pi)=>{
+    if(!p.alive)return;
+    const regions=regs(pi);
+    regions.forEach(reg=>{
+      if(reg.length<2)return;
+      const path=regOutline(reg);
+      if(!path)return;
+      // Transform path coordinates
+      const pts=path.split(/(?=[MLZ])/).map(seg=>{
+        if(seg==='Z')return seg;
+        const type=seg[0];
+        const nums=seg.slice(1).trim().split(' ').map(Number);
+        if(nums.length===2)return type+ ' '+(nums[0]*(sz+gp)+ox)+' '+(nums[1]*(sz+gp)+oy);
+        return seg;
+      }).join(' ');
+      const isSel=S.sel&&S.sel.tid!==-1&&reg.includes(S.sel.tid);
+      const isTgt=S.sel&&S.sel.player===S.cp&&pi!==S.cp&&adj([S.sel.tid],reg);
+      const sw=isSel?4:2.5;
+      const col=isSel?'#fff':PC[pi];
+      svgHTML+=`<path d="${pts}" fill="none" stroke="${col}" stroke-width="${sw}" opacity="${isTgt?.7:.5}" stroke-linejoin="round" stroke-linecap="round"/>`;
+    });
+  });
   svg.innerHTML=svgHTML;
 
-  // Remove old blocks
-  document.querySelectorAll('.region-block').forEach(el=>el.remove());
-
-  // Compute regions for ALL players and render
-  G.pl.forEach((p,pi)=>{
+  // ---- Region troop labels ----
+  document.querySelectorAll('.rl').forEach(el=>el.remove());
+  S.pl.forEach((p,pi)=>{
     if(!p.alive)return;
-    const regions=findRegions(pi);
+    const regions=regs(pi);
     regions.forEach(reg=>{
-      const {r1,r2,c1,c2}=regBounds(reg);
-      const troops=regTroops(reg);
-      const x=offX+c1*(sz+g)-2,y=offY+r1*(sz+g)-2,w=(c2-c1+1)*sz+(c2-c1)*g+4,h=(r2-r1+1)*sz+(r2-r1)*g+4;
-
+      if(reg.length<2)return;
+      // Centroid
+      let sx=0,sy=0;reg.forEach(i=>{sx+=rc(i).c;sy+=rc(i).r;});sx/=reg.length;sy/=reg.length;
+      const troops=rTr(reg);
       const el=document.createElement('div');
-      el.className='region-block';
-      el.style.left=x+'px';el.style.top=y+'px';
-      el.style.width=w+'px';el.style.height=h+'px';
-      el.style.background=`radial-gradient(ellipse at 40% 40%,${RGBA[pi]}0.4), ${RGBA[pi]}0.2)`;
-      el.style.borderColor=PC[pi];
-
-      // Selection & targeting
-      const isSel=G.selReg&&G.selReg.player===pi&&G.selReg.key===reg.sort((a,b)=>a-b).join(',');
-      const isTgt=G.selReg&&G.selReg.player===G.cp&&pi!==G.cp&&regionsAdjacent(G.selReg.ids,reg);
-      if(isSel)el.classList.add('sel');
-      if(isTgt)el.classList.add('tgt');
-
-      // Battle progress
-      let battleProgress=-1;
-      for(const id of reg){if(G.battles[id]){battleProgress=G.battles[id].progress;break;}}
-
-      const pn=pi===G.cp?'你的领地':PN[pi]+'领土';
-      el.innerHTML=`<div class="rt">${Math.floor(troops)}</div><div class="rn">${pn}</div><div class="rr">${reg.length}块合并</div>`+
-        (battleProgress>=0?`<div class="bbar"><div class="fill" style="width:${Math.floor(battleProgress*100)}%"></div></div>`:'');
-
-      el.onclick=()=>onRegionClick(reg,pi);
-      c.appendChild(el);
+      el.className='rl'+(S.sel&&reg.includes(S.sel.tid)?' sel':'');
+      el.style.left=(sx*(sz+gp)+ox+sz/2)+'px';
+      el.style.top=(sy*(sz+gp)+oy+sz/2)+'px';
+      el.innerHTML=`<div class="rt">${Math.floor(troops)}</div><div class="rn">${reg.length}块合并</div>`;
+      el.onclick=()=>onRegion(reg,pi);
+      mc.appendChild(el);
     });
   });
 
-  // Update header
-  const p=G.pl[G.cp];
+  // Header
+  const p=S.pl[S.cp];
   document.getElementById('myT').textContent=Math.floor(p.troops);
-  document.getElementById('dC').textContent=G.dia;
+  document.getElementById('dC').textContent=S.dia;
 }
 
 // ===== INPUT =====
-function onRegionClick(reg,player){
-  if(G.over||!G.run)return;
-  const key=reg.sort((a,b)=>a-b).join(',');
-
-  if(player===G.cp){
-    if(G.selReg&&G.selReg.player===G.cp&&G.selReg.key===key){
-      G.selReg=null;render();return;
-    }
-    G.selReg={ids:reg,player,key};
+function onCell(id){
+  if(S.over||!S.run)return;
+  const t=S.t[id];
+  if(t.owner===S.cp){
+    S.sel=t.owner>=0?{player:S.cp,tid:id}:null;
     render();return;
   }
-
-  if(G.selReg&&G.selReg.player===G.cp&&regionsAdjacent(G.selReg.ids,reg)){
-    // Check if any target territory is in battle
-    for(const id of reg){if(G.battles[id]){show('该区域正在战斗中');return;}}
-    const total=regTroops(G.selReg.ids),cnt=Math.floor(total/2);
+  if(S.sel&&S.sel.player===S.cp&&adj([S.sel.tid],[id])){
+    if(S.battles[id]){show('正在战斗中');return;}
+    const src=S.t[S.sel.tid],cnt=Math.floor(src.troops/2);
     if(cnt<=0){show('兵力不足');return;}
-    // Pick first territory in target region that's adjacent
-    let tgtId=null;
-    for(const sa of G.selReg.ids){for(const n of G.t[sa].n){if(reg.includes(n)){tgtId=n;break;}}if(tgtId!==null)break;}
-    // Deduct troops proportionally from source region
-    const srcTs=G.selReg.ids.map(i=>G.t[i]);let rem=cnt;
-    for(const t of srcTs){if(rem<=0)break;const sh=Math.min(Math.floor(t.troops),Math.ceil(rem/srcTs.filter(x=>x.troops>0).length));t.troops-=sh;rem-=sh;}
-    if(rem>0&&srcTs.length>0)srcTs[0].troops-=rem;
-    // Start battle
-    const uid=++G._buid;
-    G.battles[tgtId]={progress:0,atkOwner:G.cp,atkTroops:cnt,defTroops:Math.floor(G.t[tgtId].troops),uid,srcIds:G.selReg.ids.slice()};
+    const uid=++S._buid;
+    S.battles[id]={progress:0,atkOwner:S.cp,atkTroops:cnt,defTroops:Math.floor(t.troops),uid,srcId:S.sel.tid};
+    src.troops-=cnt;
     show('⚔️进攻！');
     render();updStats();renderSB();updUI();updEB();
     return;
   }
-
-  if(G.selReg)show('目标不相邻');else show('点击己方领土选中');
+  if(S.sel)show('目标不相邻');else show('点击己方领地选中');
+}
+function onRegion(reg,pi){
+  if(S.over||!S.run)return;
+  if(pi===S.cp){
+    const id=reg[0];
+    S.sel=S.sel&&S.sel.tid===reg[0]?null:{player:S.cp,tid:id};
+    render();return;
+  }
+  if(S.sel&&S.sel.player===S.cp&&adj([S.sel.tid],reg)){
+    // Find target cell
+    let tgtId=null;
+    for(const n of S.t[S.sel.tid].n)if(reg.includes(n)){tgtId=n;break;}
+    if(!tgtId||S.battles[tgtId]){show('正在战斗中');return;}
+    const src=S.t[S.sel.tid],cnt=Math.floor(src.troops/2);
+    if(cnt<=0){show('兵力不足');return;}
+    const uid=++S._buid;
+    S.battles[tgtId]={progress:0,atkOwner:S.cp,atkTroops:cnt,defTroops:Math.floor(S.t[tgtId].troops),uid,srcId:S.sel.tid};
+    src.troops-=cnt;
+    show('⚔️进攻！');
+    render();updStats();renderSB();updUI();updEB();
+    return;
+  }
+  if(S.sel)show('目标不相邻');else show('点击己方领地选中');
 }
 
-// ===== BATTLE SYSTEM =====
-function tickBattles(){
-  for(const id in G.battles){
-    const b=G.battles[id],dst=G.t[id];
-    if(b.defTroops===undefined)continue;
-    const dmgAtk=Math.min(b.atkTroops,Math.max(1,Math.floor(b.defTroops*0.1)+1));
-    const dmgDef=Math.min(b.defTroops,Math.max(1,Math.floor(b.atkTroops*0.07)+1));
-    b.atkTroops-=dmgDef;b.defTroops-=dmgAtk;
-    const ratio=b.atkTroops/Math.max(1,b.defTroops+b.atkTroops);
-    b.progress+=ratio*0.06-0.025;
-    b.progress=Math.max(0,Math.min(1,b.progress));
-
-    if(b.progress>=1||b.defTroops<=0){
-      dst.owner=b.atkOwner;dst.troops=Math.max(1,b.atkTroops);
-      delete G.battles[id];
-      show('🔥攻占'+NAMES[id]);
-    }else if(b.atkTroops<=0){
-      dst.troops=Math.max(1,b.defTroops);
-      delete G.battles[id];
-      show('💥进攻被击退');
-    }else{
-      dst.troops=Math.max(1,b.defTroops);
-    }
+// ===== BATTLE =====
+function tickB(){
+  for(const id in S.battles){
+    const b=S.battles[id],dst=S.t[id];
+    const dmgA=Math.min(b.atkTroops,Math.max(1,Math.floor(b.defTroops*0.1)+1));
+    const dmgD=Math.min(b.defTroops,Math.max(1,Math.floor(b.atkTroops*0.07)+1));
+    b.atkTroops-=dmgD;b.defTroops-=dmgA;
+    const r=b.atkTroops/Math.max(1,b.defTroops+b.atkTroops);
+    b.progress+=r*0.06-0.025;b.progress=Math.max(0,Math.min(1,b.progress));
+    if(b.progress>=1||b.defTroops<=0){dst.owner=b.atkOwner;dst.troops=Math.max(1,b.atkTroops);delete S.battles[id];show('🔥攻占'+NAMES[id]);}
+    else if(b.atkTroops<=0){dst.troops=Math.max(1,b.defTroops);delete S.battles[id];show('💥击退');}
+    else dst.troops=Math.max(1,b.defTroops);
   }
 }
 
 // ===== AI =====
 let aiT=null;
-function startAI(){stopAI();aiT=setInterval(()=>{for(let i=1;i<G.pl.length;i++)if(G.pl[i].alive)aiTurn(i);},2800);}
+function startAI(){stopAI();aiT=setInterval(()=>{for(let i=1;i<S.pl.length;i++)if(S.pl[i].alive)aiTurn(i);},2800);}
 function stopAI(){if(aiT){clearInterval(aiT);aiT=null;}}
 function aiTurn(pid){
-  if(G.over||!G.run)return;
-  const regions=findRegions(pid);
-  for(const reg of regions.sort(()=>Math.random()-0.5)){
-    const total=regTroops(reg);
-    if(total<12)continue;
-    const targets=[];const regSet=new Set(reg);
-    for(const sid of reg)for(const n of G.t[sid].n){const nt=G.t[n];if(nt.owner!==pid&&!G.battles[n]&&!targets.some(t=>t.id===n))targets.push({id:n,troops:nt.troops,owner:nt.owner});}
+  if(S.over||!S.run)return;
+  const rgs=regs(pid);
+  for(const rg of rgs.sort(()=>Math.random()-0.5)){
+    const total=rTr(rg);if(total<12)continue;
+    const targets=[];const rs=new Set(rg);
+    for(const sid of rg)for(const n of S.t[sid].n){const nt=S.t[n];if(nt.owner!==pid&&!S.battles[n]&&!targets.some(t=>t.id===n))targets.push({id:n,troops:nt.troops,owner:nt.owner});}
     if(!targets.length)continue;
     targets.sort((a,b)=>{if(a.owner<0&&b.owner>=0)return -1;if(a.owner>=0&&b.owner<0)return 1;return a.troops-b.troops;});
-    const tgt=targets[0],cnt=Math.min(Math.floor(total*0.5),total-5);
+    const tg=targets[0],cnt=Math.min(Math.floor(total*0.5),total-5);
     if(cnt<=5)continue;
-    // Deduct
-    const srcTs=reg.map(i=>G.t[i]);let rem=cnt;
+    const srcTs=rg.map(i=>S.t[i]);let rem=cnt;
     for(const t of srcTs){if(rem<=0)break;const sh=Math.min(Math.floor(t.troops),Math.ceil(rem/srcTs.filter(x=>x.troops>0).length));t.troops-=sh;rem-=sh;}
     if(rem>0&&srcTs.length>0)srcTs[0].troops-=rem;
-    const uid=++G._buid;
-    G.battles[tgt.id]={progress:0,atkOwner:pid,atkTroops:cnt,defTroops:Math.floor(G.t[tgt.id].troops),uid,srcIds:reg.slice()};
+    const uid=++S._buid;
+    S.battles[tg.id]={progress:0,atkOwner:pid,atkTroops:cnt,defTroops:Math.floor(S.t[tg.id].troops),uid,srcId:rg[0]};
     break;
   }
 }
 
 // ===== UPDATE =====
-function updStats(){G.pl.forEach(p=>{p.troops=0;p.lands=0;});G.t.forEach(t=>{if(t.owner>=0){G.pl[t.owner].troops+=Math.floor(t.troops);G.pl[t.owner].lands++;}});}
-function updUI(){const p=G.pl[G.cp];document.getElementById('myT').textContent=Math.floor(p.troops);document.getElementById('dC').textContent=G.dia;const timer=document.getElementById('timer'),m=Math.floor(G.tl/60),s=Math.floor(G.tl%60);timer.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');timer.classList.toggle('warn',G.tl<60);}
-function updEB(){const bar=document.getElementById('eb'),val=document.getElementById('ev'),p=G.pl[G.cp];if(p.alive&&p.lands>0){const e=1+(p.lands-1)*0.08;val.textContent='+'+Math.floor(p.lands*2*e)+'/秒(x'+e.toFixed(2)+')';bar.style.display='flex';}else bar.style.display='none';}
-function renderSB(){document.getElementById('sb').innerHTML=G.pl.map((p,i)=>'<div class="sbi'+(i===G.cp?' me':'')+'" style="'+(p.alive?'':'opacity:.3')+'"><span class="sd" style="background:'+p.color+'"></span><span class="sn">'+p.name+(p.alive?'':'💀')+'</span><span class="st">'+Math.floor(p.troops)+'</span><span class="sl">('+p.lands+')</span><span class="se">x'+(p.alive?(1+(p.lands-1)*0.08).toFixed(2):'0')+'</span></div>').join('');}
-function checkE(){const a=new Set();G.t.forEach(t=>{if(t.owner>=0)a.add(t.owner);if(G.battles[t.id])a.add(G.battles[t.id].atkOwner);});G.pl.forEach((p,i)=>{p.alive=a.has(i)||i===G.cp;});}
-function checkW(){if(G.over)return;const a=G.pl.filter(p=>p.alive);if(a.length<=1&&G.pl.some(p=>p.alive))end(a[0]?.id);}
-function end(wid){G.over=true;G.run=false;stopAI();clearInterval(lt);lt=null;
-  const s=G.pl.map((p,i)=>({name:p.name,troops:Math.floor(p.troops),lands:p.lands,score:Math.floor(p.troops)+p.lands*10})).sort((a,b)=>b.score-a.score);
-  const rk=s.findIndex(x=>x.name===G.pl[G.cp].name)+1;let m='🏆对局结束！\n'+(wid===G.cp?'🎉你赢了！':wid>=0?G.pl[wid].name+'获胜':'⚖️平局！')+'\n\n';
+function updStats(){S.pl.forEach(p=>{p.troops=0;p.lands=0;});S.t.forEach(t=>{if(t.owner>=0){S.pl[t.owner].troops+=Math.floor(t.troops);S.pl[t.owner].lands++;}});}
+function updUI(){const p=S.pl[S.cp];document.getElementById('myT').textContent=Math.floor(p.troops);document.getElementById('dC').textContent=S.dia;const t=document.getElementById('timer'),m=Math.floor(S.tl/60),s=Math.floor(S.tl%60);t.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');t.classList.toggle('warn',S.tl<60);}
+function updEB(){const b=document.getElementById('eb'),v=document.getElementById('ev'),p=S.pl[S.cp];if(p.alive&&p.lands>0){const e=1+(p.lands-1)*0.08;v.textContent='+'+Math.floor(p.lands*2*e)+'/秒(x'+e.toFixed(2)+')';b.style.display='flex';}else b.style.display='none';}
+function renderSB(){document.getElementById('sb').innerHTML=S.pl.map((p,i)=>'<div class="sbi'+(i===S.cp?' me':'')+'" style="'+(p.alive?'':'opacity:.3')+'"><span class="sd" style="background:'+p.color+'"></span><span class="sn">'+p.name+(p.alive?'':'💀')+'</span><span class="st">'+Math.floor(p.troops)+'</span><span class="sl">('+p.lands+')</span><span class="se">x'+(p.alive?(1+(p.lands-1)*0.08).toFixed(2):'0')+'</span></div>').join('');}
+function checkE(){const a=new Set();S.t.forEach(t=>{if(t.owner>=0)a.add(t.owner);if(S.battles[t.id])a.add(S.battles[t.id].atkOwner);});S.pl.forEach((p,i)=>{p.alive=a.has(i)||i===S.cp;});}
+function checkW(){if(S.over)return;const a=S.pl.filter(p=>p.alive);if(a.length<=1&&S.pl.some(p=>p.alive))end(a[0]?.id);}
+function end(wid){S.over=true;S.run=false;stopAI();clearInterval(lt);lt=null;
+  const s=S.pl.map((p,i)=>({name:p.name,troops:Math.floor(p.troops),lands:p.lands,score:Math.floor(p.troops)+p.lands*10})).sort((a,b)=>b.score-a.score);
+  const rk=s.findIndex(x=>x.name===S.pl[S.cp].name)+1;let m='🏆对局结束！\n'+(wid===S.cp?'🎉你赢了！':wid>=0?S.pl[wid].name+'获胜':'⚖️平局！')+'\n\n';
   s.forEach((x,i)=>{m+=(['🥇','🥈','🥉'][i]||'#'+(i+1))+' '+x.name+(x.alive?'':'💀')+' 兵'+x.troops+' 地'+x.lands+' 总分'+x.score+'\n';});m+='\n排名:'+rk+'/'+s.length;show(m);}
 
 // ===== ITEMS =====
 const SI=[{id:'s',name:'🛡护盾',p:100,l:1},{id:'a',name:'✈空袭',p:200,l:1},{id:'re',name:'📦征兵',p:120,l:1}];let iU={};
 function renderItems(){document.getElementById('ir').innerHTML=SI.map(it=>'<div class="ib'+(iU[it.id]>=it.l?' used':'')+'" data-id="'+it.id+'"><span>'+it.name+'</span><span class="ip">💎'+it.p+'</span></div>').join('');document.querySelectorAll('.ib:not(.used)').forEach(b=>b.onclick=()=>useI(b.dataset.id));}
-function useI(id){if(G.over)return;const it=SI.find(i=>i.id===id);if(!it)return;const u=iU[id]||0;if(u>=it.l){show('❌已用尽');return;}if(G.dia<it.p){show('💎还差'+(it.p-G.dia));return;}G.dia-=it.p;iU[id]=(iU[id]||0)+1;
-  if(id==='s'){if(!G.selReg||G.selReg.player!==G.cp){show('先选中己方领土');G.dia+=it.p;iU[id]--;return;}G.selReg.ids.forEach(i=>{G.t[i]._sh=1;});show('🛡护盾！');setTimeout(()=>{G.selReg&&G.selReg.ids.forEach(i=>{G.t[i]._sh=0;});},8000);}
-  else if(id==='a'){const t=G.t.filter(t=>t.owner!==G.cp&&t.owner>=0);if(t.length){const tg=t.sort((a,b)=>b.troops-a.troops)[0];let d=Math.min(50,Math.max(1,Math.floor(tg.troops-1)));tg.troops-=d;show('✈空袭!'+(-d));render();renderSB();updUI();updEB();checkE();checkW();}else show('✈无目标');}
-  else if(id==='re'){if(!G.selReg||G.selReg.player!==G.cp){show('先选中己方领土');G.dia+=it.p;iU[id]--;return;}G.selReg.ids.forEach(i=>{G.t[i].troops+=30/G.selReg.ids.length;});show('📦+30援军');render();renderSB();updUI();updEB();}
+function useI(id){if(S.over)return;const it=SI.find(i=>i.id===id);if(!it)return;const u=iU[id]||0;if(u>=it.l){show('❌已用尽');return;}if(S.dia<it.p){show('💎还差'+(it.p-S.dia));return;}S.dia-=it.p;iU[id]=(iU[id]||0)+1;
+  if(id==='s'){if(!S.sel||S.t[S.sel.tid].owner!==S.cp){show('先选中己方领土');S.dia+=it.p;iU[id]--;return;}S.t[S.sel.tid]._sh=1;show('🛡护盾！');setTimeout(()=>{if(S.t[S.sel.tid])S.t[S.sel.tid]._sh=0;},8000);}
+  else if(id==='a'){const t=S.t.filter(t=>t.owner!==S.cp&&t.owner>=0);if(t.length){const tg=t.sort((a,b)=>b.troops-a.troops)[0];let d=Math.min(50,Math.max(1,Math.floor(tg.troops-1)));tg.troops-=d;show('✈空袭!'+(-d));render();renderSB();updUI();updEB();checkE();checkW();}else show('✈无目标');}
+  else if(id==='re'){if(!S.sel||S.t[S.sel.tid].owner!==S.cp){show('先选中己方领土');S.dia+=it.p;iU[id]--;return;}S.t[S.sel.tid].troops+=30;show('📦+30援军');render();renderSB();updUI();updEB();}
   renderItems();updUI();}
 
-// ===== GAME LOOP =====
+// ===== LOOP =====
 let lt=null;
-function startL(){stopL();lt=setInterval(()=>{if(G.over||!G.run)return;G.tl-=1;if(G.tl<=0){G.tl=0;endByT();return;}
-  tickBattles();
-  G.pl.forEach((p,pi)=>{if(!p.alive||!p.lands)return;const owned=G.t.filter(t=>t.owner===pi);if(!owned.length)return;const e=eff=p.lands;const prod=Math.floor(p.lands*2*(1+(p.lands-1)*0.08));const per=prod/owned.length;owned.forEach(t=>{if(!G.battles[t.id])t.troops+=per;});});
+function startL(){stopL();lt=setInterval(()=>{if(S.over||!S.run)return;S.tl-=1;if(S.tl<=0){S.tl=0;endByT();return;}
+  tickB();S.pl.forEach((p,pi)=>{if(!p.alive||!p.lands)return;const o=S.t.filter(t=>t.owner===pi);if(!o.length)return;const e=1+(p.lands-1)*0.08;const prod=Math.floor(p.lands*2*e);const per=prod/o.length;o.forEach(t=>{if(!S.battles[t.id])t.troops+=per;});});
   updStats();render();renderSB();updUI();updEB();checkE();checkW();},1000);}
 function stopL(){if(lt){clearInterval(lt);lt=null;}}
-function endByT(){const s=G.pl.map((p,i)=>({id:i,score:Math.floor(p.troops)+p.lands*10})).sort((a,b)=>b.score-a.score);end(s[0].id);}
+function endByT(){const s=S.pl.map((p,i)=>({id:i,score:Math.floor(p.troops)+p.lands*10})).sort((a,b)=>b.score-a.score);end(s[0].id);}
 
 // ===== TOAST =====
 let tt=null;function show(msg){document.querySelectorAll('.toast').forEach(el=>el.remove());if(tt)clearTimeout(tt);const el=document.createElement('div');el.className='toast';el.textContent=msg;document.getElementById('mapC').appendChild(el);tt=setTimeout(()=>{el.remove();},2500);}
 
 // ===== EVENTS =====
-document.getElementById('adB').onclick=()=>{if(G.over)return;G.dia+=20;show('📺+20💎');updUI();};
-document.getElementById('helpB').onclick=()=>show('🎯点击己方合并领土选中→点击相邻目标出兵(自动半兵)');
+document.getElementById('adB').onclick=()=>{if(S.over)return;S.dia+=20;show('📺+20💎');updUI();};
+document.getElementById('helpB').onclick=()=>show('🎯点击己方格子选中→点相邻目标出兵');
 
 // ===== INIT =====
 function init(){
-  G.pl=PN.map((n,i)=>({id:i,name:n,color:PC[i],troops:0,lands:0,alive:true}));
-  G.t=ALL_TERRITORIES.map(t=>{let o=-1;for(const[p,s]of Object.entries(PSTARTS))if(s.includes(t.id)){o=parseInt(p);break;}return{...t,owner:o,troops:o>=0?18:Math.floor(Math.random()*4)+3,_sh:0};});
-  G.selReg=null;G.tl=300;G.dia=200;G.run=true;G.over=false;G.battles={};G._buid=0;
+  S.pl=PN.map((n,i)=>({id:i,name:n,color:PC[i],troops:0,lands:0,alive:true}));
+  S.t=ALL_T.map(t=>{let o=-1;for(const[p,s]of Object.entries(PSTARTS))if(s.includes(t.id)){o=parseInt(p);break;}return{...t,owner:o,troops:o>=0?18:Math.floor(Math.random()*4)+3,_sh:0};});
+  S.sel=null;S.tl=300;S.dia=200;S.run=true;S.over=false;S.battles={};S._buid=0;
   updStats();render();renderSB();renderItems();updUI();updEB();
   startL();startAI();}
 init();

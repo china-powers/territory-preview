@@ -3,21 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>领土战争 Demo</title>
+<title>领土战争·闪电战</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;user-select:none;}
 body{background:#0a0e17;font-family:-apple-system,'PingFang SC','Helvetica Neue',sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;overflow:hidden;}
-#app{width:100%;max-width:480px;height:100vh;max-height:860px;background:linear-gradient(145deg,#111827,#0f172a);display:flex;flex-direction:column;position:relative;overflow:hidden;box-shadow:0 0 60px rgba(0,0,0,.8);}
-
+#app{
+  width:100%;max-width:480px;height:100vh;max-height:860px;background:linear-gradient(145deg,#111827,#0f172a);
+  display:flex;flex-direction:column;position:relative;overflow:hidden;box-shadow:0 0 60px rgba(0,0,0,.8);
+}
 .header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px 6px;background:rgba(0,0,0,.4);border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;z-index:10;}
-.header .pi{display:flex;align-items:center;gap:6px;}
+.header .left{display:flex;align-items:center;gap:6px;}
 .header .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
-.header .pn{font-size:12px;color:#94a3b8;}
-.header .pt{font-size:14px;font-weight:700;color:#fff;}
-.header .timer{font-size:20px;font-weight:900;font-variant-numeric:tabular-nums;color:#38bdf8;letter-spacing:1px;}
-.header .timer.warn{color:#ef4444;animation:pulse 1s ease-in-out infinite;}
+.header .label{font-size:12px;color:#94a3b8;}
+.header .troops{font-size:14px;font-weight:700;color:#fff;}
+.timer{font-size:20px;font-weight:900;font-variant-numeric:tabular-nums;color:#38bdf8;letter-spacing:1px;}
+.timer.warn{color:#ef4444;animation:pulse 1s ease-in-out infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.header .diamond{display:flex;align-items:center;gap:4px;font-size:13px;color:#fbbd24;font-weight:700;}
+.diamond{display:flex;align-items:center;gap:4px;font-size:13px;color:#fbbf24;font-weight:700;}
 
 .sb{display:flex;gap:3px;padding:3px 8px;flex-shrink:0;background:rgba(0,0,0,.2);border-bottom:1px solid rgba(255,255,255,.04);flex-wrap:wrap;}
 .sbi{flex:1;min-width:70px;display:flex;align-items:center;gap:3px;padding:2px 5px;border-radius:4px;font-size:10px;background:rgba(255,255,255,.04);}
@@ -25,20 +27,19 @@ body{background:#0a0e17;font-family:-apple-system,'PingFang SC','Helvetica Neue'
 .sbi .sn{color:#94a3b8;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;}
 .sbi .st{color:#e2e8f0;font-weight:700;font-size:11px;}
 .sbi .sl{color:#64748b;font-size:9px;}
-.sbi .sef{color:#4ade80;font-size:9px;}
+.sbi .se{color:#4ade80;font-size:9px;}
 .sbi.me{background:rgba(56,189,248,.12);}
 
-/* Map - SVG events bubble to the container via delegation */
-.map-c{flex:1;position:relative;overflow:hidden;min-height:0;}
-.map-c svg{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}
-.map-c svg line{stroke:rgba(255,255,255,.08);stroke-width:2;}
-.map-c svg .rp,.map-c svg .rc{/* pointer-events from inline style */}
+.mapC{flex:1;position:relative;overflow:hidden;min-height:0;}
+.mapC svg{position:absolute;top:0;left:0;width:100%;height:100%;}
+.mapC svg line{stroke:rgba(255,255,255,.08);stroke-width:2;}
 
-/* Region labels - ALL clickable */
-.rl{position:absolute;transform:translate(-50%,-50%);z-index:5;text-align:center;cursor:pointer;pointer-events:auto;}
-.rl .rt{font-size:28px;font-weight:900;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.8);line-height:1.2;pointer-events:none;}
-.rl .rn{font-size:10px;color:rgba(255,255,255,.5);text-shadow:0 1px 6px rgba(0,0,0,.6);pointer-events:none;}
-.rl .rr{font-size:9px;color:rgba(255,255,255,.3);pointer-events:none;}
+.region-label{
+  position:absolute;transform:translate(-50%,-50%);z-index:5;text-align:center;cursor:pointer;pointer-events:auto;
+}
+.region-label .rt{font-size:26px;font-weight:900;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.8);line-height:1.2;pointer-events:none;}
+.region-label .rn{font-size:10px;color:rgba(255,255,255,.5);text-shadow:0 1px 6px rgba(0,0,0,.6);pointer-events:none;}
+.region-label .rr{font-size:9px;color:rgba(255,255,255,.3);pointer-events:none;}
 
 .march{position:absolute;z-index:8;pointer-events:none;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;color:#fff;transform:translate(-50%,-50%);box-shadow:0 0 8px rgba(255,255,255,.3);}
 .march.m0{background:#ef4444;}.march.m1{background:#3b82f6;}.march.m2{background:#22c55e;}.march.m3{background:#f97316;}
@@ -52,830 +53,303 @@ body{background:#0a0e17;font-family:-apple-system,'PingFang SC','Helvetica Neue'
 .ib{flex-shrink:0;display:flex;flex-direction:column;align-items:center;padding:4px 8px;border-radius:7px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);cursor:pointer;transition:all .15s;gap:1px;}
 .ib:hover{background:rgba(255,255,255,.12);transform:translateY(-1px);}
 .ib .in{font-size:9px;color:#e2e8f0;}
-.ib .ip{font-size:8px;color:#fbbd24;font-weight:700;}
+.ib .ip{font-size:8px;color:#fbbf24;font-weight:700;}
 .ib.used{opacity:.4;pointer-events:none;}
 .ba{display:flex;gap:5px;align-items:center;}
 .ba button{flex:1;padding:7px 0;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;}
 .bf{background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;}
-.ba2{background:linear-gradient(135deg,#6366f1,#4338ca);color:#fff;font-size:10px;}
+.bh{background:linear-gradient(135deg,#6366f1,#4338ca);color:#fff;font-size:10px;}
 .bm{background:rgba(255,255,255,.08);color:#94a3b8;font-size:10px;flex:0 0 auto;padding:7px 12px;}
 
 .toast{position:absolute;bottom:100px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.85);color:#fff;padding:7px 16px;border-radius:9px;font-size:12px;font-weight:600;z-index:50;white-space:nowrap;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.1);animation:ti .25s ease-out;}
 @keyframes ti{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
-
-@media(max-width:480px){.rl .rt{font-size:22px;}}
+@media(max-width:480px){.region-label .rt{font-size:22px;}}
 </style>
 </head>
 <body>
 <div id="app">
   <div class="header">
-    <div class="pi"><span class="dot" style="background:#ef4444"></span><span class="pn">你</span><span class="pt" id="myT">150</span></div>
+    <div class="left"><span class="dot" style="background:#ef4444"></span><span class="label">你</span><span class="troops" id="myT">150</span></div>
     <div class="timer" id="timer">05:00</div>
-    <div class="diamond">💎<span id="diamondC">200</span></div>
+    <div class="diamond">💎<span id="dC">200</span></div>
   </div>
   <div class="sb" id="sb"></div>
-  <div class="map-c" id="mapC"><svg id="svgM"></svg></div>
+  <div class="mapC" id="mapC"><svg id="svgM" style="pointer-events:none"></svg></div>
   <div class="eb" id="eb" style="display:none"><span class="el">📈合并增兵效率</span><span class="ev" id="ev">x1.0</span></div>
   <div class="bb">
     <div class="ir" id="ir"></div>
     <div class="ba">
-      <button class="bm" id="speedB">⚡5:00</button>
-      <button class="bf" id="halfB">🎯选中→点目标出兵</button>
-      <button class="ba2" id="adB">📺得20💎</button>
+      <button class="bm">⚡5:00</button>
+      <button class="bf" id="helpBtn">🎯选中→点击目标出兵</button>
+      <button class="bh" id="adBtn">📺得20💎</button>
     </div>
   </div>
 </div>
 
 <script>
 // ===== CONFIG =====
-const PLAYER_NAMES = ['你','蓝方','绿方','橙方'];
-const PLAYER_COLORS = ['#ef4444','#3b82f6','#22c55e','#f97316'];
-const TERRITORIES = [
-  {id:0,name:'王城',x:235,y:70,neighbors:[1,3,4]},
-  {id:1,name:'铁卫',x:325,y:70,neighbors:[0,2,4,5]},
-  {id:2,name:'烽火',x:415,y:70,neighbors:[1,5,6]},
-  {id:3,name:'哨塔',x:160,y:175,neighbors:[0,4,7,8]},
-  {id:4,name:'要塞',x:275,y:170,neighbors:[0,1,3,5,8]},
-  {id:5,name:'渡口',x:375,y:170,neighbors:[1,2,4,6,9]},
-  {id:6,name:'壁垒',x:485,y:175,neighbors:[2,5,10]},
-  {id:7,name:'前哨',x:160,y:285,neighbors:[3,8,11]},
-  {id:8,name:'中枢',x:275,y:280,neighbors:[3,4,7,9,11,12]},
-  {id:9,name:'集市',x:375,y:280,neighbors:[5,8,10,12,13]},
-  {id:10,name:'城门',x:485,y:285,neighbors:[6,9,13]},
-  {id:11,name:'粮仓',x:205,y:380,neighbors:[7,8,12]},
-  {id:12,name:'兵营',x:320,y:380,neighbors:[8,9,11,13]},
-  {id:13,name:'军械',x:425,y:380,neighbors:[9,10,12]},
+const PN=['你','蓝方','绿方','橙方'], PC=['#ef4444','#3b82f6','#22c55e','#f97316'];
+const TERRITORIES=[
+  {id:0,name:'王城',x:235,y:70,n:[1,3,4]},{id:1,name:'铁卫',x:325,y:70,n:[0,2,4,5]},
+  {id:2,name:'烽火',x:415,y:70,n:[1,5,6]},{id:3,name:'哨塔',x:160,y:175,n:[0,4,7,8]},
+  {id:4,name:'要塞',x:275,y:170,n:[0,1,3,5,8]},{id:5,name:'渡口',x:375,y:170,n:[1,2,4,6,9]},
+  {id:6,name:'壁垒',x:485,y:175,n:[2,5,10]},{id:7,name:'前哨',x:160,y:285,n:[3,8,11]},
+  {id:8,name:'中枢',x:275,y:280,n:[3,4,7,9,11,12]},{id:9,name:'集市',x:375,y:280,n:[5,8,10,12,13]},
+  {id:10,name:'城门',x:485,y:285,n:[6,9,13]},{id:11,name:'粮仓',x:205,y:380,n:[7,8,12]},
+  {id:12,name:'兵营',x:320,y:380,n:[8,9,11,13]},{id:13,name:'军械',x:425,y:380,n:[9,10,12]},
 ];
-const PLAYER_STARTS = [[0,3],[2,6],[11,7],[10,13]];
-const BASE_PRODUCTION = 2;
-const EFFICIENCY_SCALE = 0.08;
+const PS=[[0,3],[2,6],[11,7],[10,13]];
 
 // ===== STATE =====
-let G = {
-  players: [],        // {id, name, color, troops, lands, alive}
-  t: [],              // territories {id, name, x, y, neighbors, owner, troops, _sh}
-  marches: [],        // {uid, srcIds, dstIds, troops, owner, targetId}
-  sel: null,          // current selected region {ids, player} or null
-  cp: 0,              // current player id (always 0)
-  time: 300,
-  dia: 200,
-  running: true,
-  over: false,
-  af: null,           // animation frame
-  boost: 0,           // production boost counter
-  regions: [],        // cached regions [{ids, player}]
-  _s: 1, _ox: 0, _oy: 0, // scale/offset cache
-  _marchUid: 0,       // unique march id counter
-};
+let G={pl:[],t:[],marches:[],sel:null,cp:0,tl:300,dia:200,run:true,over:false,af:null,regions:[],_s:1,_ox:0,_oy:0,_muid:0};
 
 // ===== HELPERS =====
-function findRegions(pid) {
-  const visited = new Set(), regions = [];
-  const owned = G.t.filter(t => t.owner === pid);
-  for (const t of owned) {
-    if (visited.has(t.id)) continue;
-    const reg = [], q = [t.id];
-    visited.add(t.id);
-    while (q.length) {
-      const cur = q.shift();
-      reg.push(cur);
-      for (const n of G.t[cur].neighbors) {
-        const nt = G.t[n];
-        if (nt.owner === pid && !visited.has(n)) { visited.add(n); q.push(n); }
-      }
-    }
-    regions.push(reg);
-  }
-  return regions;
+function regs(pid){
+  const v=new Set(),r=[];
+  G.t.filter(t=>t.owner===pid).forEach(t=>{
+    if(v.has(t.id))return;
+    const reg=[],q=[t.id];v.add(t.id);
+    while(q.length){const c=q.shift();reg.push(c);G.t[c].n.forEach(n=>{const nt=G.t[n];if(nt.owner===pid&&!v.has(n)){v.add(n);q.push(n);}});}
+    r.push(reg);
+  });return r;
 }
-
-function centroid(ids) {
-  let sx = 0, sy = 0;
-  ids.forEach(i => { sx += G.t[i].x; sy += G.t[i].y; });
-  return { x: sx / ids.length, y: sy / ids.length };
-}
-
-function regionTroops(ids) { return ids.reduce((s, i) => s + Math.floor(G.t[i].troops), 0); }
-
-function efficiency(lands) { return lands <= 1 ? 1 : 1 + (lands - 1) * EFFICIENCY_SCALE; }
-
-function totalProd(pid) {
-  const p = G.players[pid];
-  if (!p || !p.alive || p.lands === 0) return 0;
-  return Math.floor(p.lands * BASE_PRODUCTION * efficiency(p.lands));
-}
-
-function polygonPoints(ids, s, ox, oy) {
-  if (ids.length < 2) return null;
-  const pts = ids.map(i => G.t[i]);
-  const cx = pts.reduce((a, p) => a + p.x, 0) / pts.length;
-  const cy = pts.reduce((a, p) => a + p.y, 0) / pts.length;
-  pts.sort((a, b) => Math.atan2(a.y - cy, a.x - cx) - Math.atan2(b.y - cy, b.x - cx));
-  const pad = 22;
-  return pts.map(p => {
-    const dx = p.x - cx, dy = p.y - cy, len = Math.sqrt(dx * dx + dy * dy) || 1;
-    return `${(p.x + dx / len * pad) * s + ox},${(p.y + dy / len * pad) * s + oy}`;
-  }).join(' ');
-}
-
-// Check if two regions are adjacent (share a neighbor edge)
-function regionsAdjacent(a, b) {
-  for (const sa of a.ids) {
-    for (const n of G.t[sa].neighbors) {
-      if (b.ids.includes(n)) return true;
-    }
-  }
-  return false;
-}
-
-// ===== INIT =====
-function initGame() {
-  G.players = PLAYER_NAMES.map((n, i) => ({
-    id: i, name: n, color: PLAYER_COLORS[i], troops: 0, lands: 0, alive: true
-  }));
-  G.t = TERRITORIES.map(t => {
-    const owner = PLAYER_STARTS.findIndex(s => s.includes(t.id));
-    return { ...t, owner: owner >= 0 ? owner : -1, troops: owner >= 0 ? 15 : Math.floor(Math.random() * 5) + 3, _sh: 0 };
-  });
-  G.marches = [];
-  G.sel = null;
-  G.time = 300;
-  G.dia = 200;
-  G.running = true;
-  G.over = false;
-  G.boost = 0;
-  G._marchUid = 0;
-  updateStats();
-  renderAll();
-  renderSB();
-  renderItems();
-  updateUI();
-  updateEB();
-}
+function cent(ids){let sx=0,sy=0;ids.forEach(i=>{sx+=G.t[i].x;sy+=G.t[i].y;});return{x:sx/ids.length,y:sy/ids.length};}
+function rTr(ids){return ids.reduce((s,i)=>s+Math.floor(G.t[i].troops),0);}
+function eff(l){return l<=1?1:1+(l-1)*0.08;}
+function tProd(pid){const p=G.pl[pid];if(!p||!p.alive||!p.lands)return 0;return Math.floor(p.lands*2*eff(p.lands));}
+function adj(a,b){for(const sa of a)for(const n of G.t[sa].n)if(b.includes(n))return true;return false;}
 
 // ===== RENDER =====
-function renderAll() {
-  const container = document.getElementById('mapC');
-  const svg = document.getElementById('svgM');
-  const rect = container.getBoundingClientRect();
+function render(){
+  const c=document.getElementById('mapC'),svg=document.getElementById('svgM'),rect=c.getBoundingClientRect();
+  const mw=530,mh=415,s=Math.min((rect.width-30)/mw,(rect.height-30)/mh,1.15),ox=(rect.width-mw*s)/2+15,oy=(rect.height-mh*s)/2+10;
 
-  const maxX = 530, maxY = 415;
-  const s = Math.min((rect.width - 30) / maxX, (rect.height - 30) / maxY, 1.15);
-  const ox = (rect.width - maxX * s) / 2 + 15;
-  const oy = (rect.height - maxY * s) / 2 + 10;
+  // Edges
+  let sc='';const drawn=new Set();
+  G.t.forEach(t=>{t.n.forEach(n=>{const k=Math.min(t.id,n)+'-'+Math.max(t.id,n);if(drawn.has(k))return;drawn.add(k);const nt=G.t[n];sc+=`<line x1="${t.x*s+ox}" y1="${t.y*s+oy}" x2="${nt.x*s+ox}" y2="${nt.y*s+oy}"/>`;});});
 
-  // ---- Draw edges ----
-  let svgHTML = '';
-  const drawn = new Set();
-  G.t.forEach(t => {
-    t.neighbors.forEach(n => {
-      const key = Math.min(t.id, n) + '-' + Math.max(t.id, n);
-      if (drawn.has(key)) return;
-      drawn.add(key);
-      const nt = G.t[n];
-      svgHTML += `<line x1="${t.x * s + ox}" y1="${t.y * s + oy}" x2="${nt.x * s + ox}" y2="${nt.y * s + oy}"/>`;
-    });
-  });
+  // Build regions
+  G.regions=[];
+  G.pl.forEach((p,pi)=>{
+    if(!p.alive)return;
+    regs(pi).forEach(reg=>{
+      const sorted=reg.slice().sort((a,b)=>a-b);
+      G.regions.push({ids:sorted,player:pi});
+      const col=p.color;
+      const isSel=G.sel&&G.sel.player===pi&&G.sel.ids.join(',')===sorted.join(',');
+      const isTgt=G.sel&&G.sel.player===G.cp&&pi!==G.cp&&adj(G.sel.ids,sorted);
+      const key=sorted.join(',');
+      const cls='sg-'+key.replace(/,/g,'_');
 
-  // ---- Build regions and draw shapes ----
-  G.regions = [];
-  G.players.forEach((p, pi) => {
-    if (!p.alive) return;
-    findRegions(pi).forEach(reg => {
-      // Sort for consistent key
-      const sorted = reg.slice().sort((a, b) => a - b);
-      G.regions.push({ ids: sorted, player: pi });
-
-      const col = p.color;
-      const isSelected = G.sel && G.sel.player === pi && G.sel.ids.join(',') === sorted.join(',');
-      const isTargetable = G.canAttack(sorted);
-      const cls = (isSelected ? ' sel' : '') + (isTargetable ? ' tgt' : '');
-      const key = sorted.join(',');
-
-      if (sorted.length >= 2) {
-        const poly = polygonPoints(reg, s, ox, oy); // reg = original order for centroid
-        if (poly) {
-          svgHTML += `<polygon points="${poly}" fill="${col}" stroke="${col}" ` +
-            `style="fill-opacity:${isSelected ? .3:.25};stroke-opacity:.7;stroke-width:${isSelected ? 4:2.5};pointer-events:auto;cursor:pointer" ` +
-            `data-key="${key}" class="rp${cls}"/>`;
+      if(sorted.length>=2){
+        const pts=sorted.map(i=>G.t[i]);
+        const cx=pts.reduce((a,p)=>a+p.x,0)/pts.length,cy=pts.reduce((a,p)=>a+p.y,0)/pts.length;
+        pts.sort((a,b)=>Math.atan2(a.y-cy,a.x-cx)-Math.atan2(b.y-cy,b.x-cx));
+        const pad=22;
+        const poly=pts.map(p=>{const dx=p.x-cx,dy=p.y-cy,len=Math.sqrt(dx*dx+dy*dy)||1;return `${(p.x+dx/len*pad)*s+ox},${(p.y+dy/len*pad)*s+oy}`;}).join(' ');
+        const so=isSel?.4:.25,sw=isSel?4:2.5;
+        sc+=`<polygon points="${poly}" fill="${col}" stroke="${isSel?'#fff':col}" stroke-width="${sw}" opacity=".9" style="fill-opacity:${so};pointer-events:auto;cursor:pointer" class="${cls}" data-key="${key}" data-player="${pi}"/>`;
+        if(isTgt){
+          sc+=`<polygon points="${poly}" fill="none" stroke="#fff" stroke-width="4" opacity=".6" style="pointer-events:none" class="tgt-${cls}"><animate attributeName="stroke-opacity" values="0.6;0.2;0.6" dur="0.8s" repeatCount="indefinite"/></polygon>`;
         }
       } else {
-        const t = G.t[sorted[0]];
-        svgHTML += `<circle cx="${t.x * s + ox}" cy="${t.y * s + oy}" r="24" fill="${col}" stroke="${col}" ` +
-          `style="fill-opacity:${isSelected ? .3:.25};stroke-opacity:.7;stroke-width:${isSelected ? 4:2.5};pointer-events:auto;cursor:pointer" ` +
-          `data-key="${key}" class="rc${cls}"/>`;
+        const t=G.t[sorted[0]];
+        const so=isSel?.4:.25,sw=isSel?4:2.5;
+        sc+=`<circle cx="${t.x*s+ox}" cy="${t.y*s+oy}" r="24" fill="${col}" stroke="${isSel?'#fff':col}" stroke-width="${sw}" opacity=".9" style="fill-opacity:${so};pointer-events:auto;cursor:pointer" class="${cls}" data-key="${key}" data-player="${pi}"/>`;
+        if(isTgt){
+          sc+=`<circle cx="${t.x*s+ox}" cy="${t.y*s+oy}" r="28" fill="none" stroke="#fff" stroke-width="3" opacity=".6" style="pointer-events:none"><animate attributeName="r" values="24;30;24" dur="0.8s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.6;0.2;0.6" dur="0.8s" repeatCount="indefinite"/></circle>`;
+        }
       }
     });
   });
+  svg.innerHTML=sc;
 
-  svg.innerHTML = svgHTML;
-
-  // ---- Add click handlers to SVG shapes via delegation ----
-  // Remove old listeners
-  svg._clickHandler && svg.removeEventListener('click', svg._clickHandler);
-  svg._clickHandler = function(e) {
-    const target = e.target.closest('[data-key]');
-    if (!target) return;
-    const key = target.getAttribute('data-key');
-    const ids = key.split(',').map(Number);
-    // Find the matching region
-    const reg = G.regions.find(r => r.ids.join(',') === key);
-    if (reg) {
-      e.stopPropagation();
-      onRegionClick(reg);
-    }
+  // Click handler via delegation
+  svg.onclick=function(e){
+    const el=e.target.closest('[data-key]');
+    if(!el)return;
+    const key=el.getAttribute('data-key'),player=parseInt(el.getAttribute('data-player'));
+    const ids=key.split(',').map(Number);
+    const reg=G.regions.find(r=>r.ids.join(',')===key);
+    if(reg)onClick(reg);
   };
-  svg.addEventListener('click', svg._clickHandler);
 
-  // ---- Remove old labels and marches ----
-  document.querySelectorAll('.rl, .march').forEach(el => el.remove());
-
-  // ---- Create region labels ----
-  G.regions.forEach(reg => {
-    const cen = centroid(reg.ids);
-    const troops = regionTroops(reg.ids);
-    const el = document.createElement('div');
-    el.className = 'rl';
-    el.style.left = (cen.x * s + ox) + 'px';
-    el.style.top = (cen.y * s + oy) + 'px';
-    const pn = reg.player === G.cp ? '你的领地' : PLAYER_NAMES[reg.player] + '的领地';
-    el.innerHTML =
-      `<div class="rt">${Math.floor(troops)}</div>` +
-      `<div class="rn">${pn}</div>` +
-      `<div class="rr">${reg.ids.length}块合并</div>`;
-    el.addEventListener('click', (e) => { e.stopPropagation(); onRegionClick(reg); });
-    container.appendChild(el);
+  // Labels
+  document.querySelectorAll('.region-label,.march').forEach(el=>el.remove());
+  G.regions.forEach(reg=>{
+    const ct=cent(reg.ids),troops=rTr(reg.ids);
+    const el=document.createElement('div');
+    el.className='region-label';
+    el.style.left=(ct.x*s+ox)+'px';el.style.top=(ct.y*s+oy)+'px';
+    el.innerHTML=`<div class="rt">${Math.floor(troops)}</div><div class="rn">${reg.player===G.cp?'你的领地':PN[reg.player]+'领地'}</div><div class="rr">${reg.ids.length}块合并</div>`;
+    el.onclick=()=>onClick(reg);
+    c.appendChild(el);
   });
 
-  G._s = s;
-  G._ox = ox;
-  G._oy = oy;
+  G._s=s;G._ox=ox;G._oy=oy;
 }
 
 // ===== INPUT =====
-function onRegionClick(reg) {
-  if (G.over || !G.running) return;
-
-  // Own region → select/deselect
-  if (reg.player === G.cp) {
-    if (G.sel && G.sel.player === G.cp && G.sel.ids.join(',') === reg.ids.join(',')) {
-      G.sel = null; // deselect
-    } else {
-      G.sel = reg; // select
+function onClick(reg){
+  if(G.over||!G.run)return;
+  if(reg.player===G.cp){
+    if(G.sel&&G.sel.player===G.cp&&G.sel.ids.join(',')===reg.ids.join(',')){
+      G.sel=null;render();return;
     }
-    renderAll();
-    updateUI();
+    G.sel=reg;render();return;
+  }
+  if(G.sel&&G.sel.player===G.cp&&adj(G.sel.ids,reg.ids)){
+    const total=rTr(G.sel.ids),cnt=Math.floor(total/2);
+    if(cnt>0)send(G.sel,reg,cnt);else show('兵力不足');
     return;
   }
-
-  // Clicking enemy/neutral region
-  if (G.sel && G.sel.player === G.cp) {
-    if (G.canAttack(reg.ids)) {
-      // Attack!
-      const total = regionTroops(G.sel.ids);
-      const count = Math.floor(total / 2);
-      if (count > 0) {
-        sendTroops(G.sel, reg, count);
-        return;
-      }
-    }
-    showToast('目标不相邻或兵力不足');
-    return;
-  }
-
-  showToast('请先点击己方区域选中');
+  if(G.sel)show('目标不相邻');else show('请先选中己方领地');
 }
 
 // ===== COMBAT =====
-function canAttack(targetIds) {
-  if (!G.sel || G.sel.player !== G.cp) return false;
-  const targetPlayer = G.t[targetIds[0]].owner;
-  if (targetPlayer === G.cp) return false;
-  for (const sid of G.sel.ids) {
-    for (const n of G.t[sid].neighbors) {
-      if (targetIds.includes(n)) return true;
-    }
-  }
-  return false;
-}
+function send(src,dst,cnt){
+  // Deduct troops
+  const srcTs=src.ids.map(i=>G.t[i]),alive=srcTs.filter(t=>t.troops>0);
+  let rem=cnt;
+  for(const t of alive){if(rem<=0)break;const share=Math.min(Math.floor(t.troops),Math.ceil(rem/alive.length));t.troops-=share;rem-=share;}
+  if(rem>0&&alive.length>0)alive[0].troops-=rem;
 
-function sendTroops(srcRegion, dstRegion, count) {
-  // Deduct troops proportionally from source territories
-  const srcTerrs = srcRegion.ids.map(id => G.t[id]);
-  let remaining = count;
-  // First pass: take equal share from each territory
-  const aliveTerrs = srcTerrs.filter(t => t.troops > 0);
-  if (aliveTerrs.length === 0) { showToast('兵力不足'); return; }
+  // Find target territory
+  let tid=null;
+  for(const sa of src.ids){for(const n of G.t[sa].n){if(dst.ids.includes(n)){tid=n;break;}}if(tid!==null)break;}
 
-  for (const t of aliveTerrs) {
-    if (remaining <= 0) break;
-    const share = Math.min(Math.floor(t.troops), Math.ceil(remaining / aliveTerrs.length));
-    t.troops -= share;
-    remaining -= share;
-  }
-  // Rounding cleanup
-  if (remaining > 0 && aliveTerrs.length > 0) {
-    aliveTerrs[0].troops -= remaining;
-  }
+  const uid=++G._muid;
+  G.marches.push({uid,srcIds:src.ids,dstIds:dst.ids,troops:cnt,owner:G.cp,targetId:tid});
 
-  // Find frontier territory in destination (the one being attacked)
-  let targetId = null;
-  for (const sid of srcRegion.ids) {
-    for (const n of G.t[sid].neighbors) {
-      if (dstRegion.ids.includes(n)) { targetId = n; break; }
-    }
-    if (targetId !== null) break;
-  }
-
-  // Register march with unique ID
-  const uid = ++G._marchUid;
-  G.marches.push({ uid, srcIds: srcRegion.ids, dstIds: dstRegion.ids, troops: count, owner: G.cp, targetId });
-
-  // Animate
-  const sc = centroid(srcRegion.ids);
-  const dc = centroid(dstRegion.ids);
-  const c = document.getElementById('mapC');
-  const ss = G._s, ox = G._ox, oy = G._oy;
-  const el = document.createElement('div');
-  el.className = 'march m' + G.cp;
-  el.textContent = Math.floor(count);
-  el.dataset.marchUid = uid;
+  const sc=cent(src.ids),dc=cent(dst.ids),c=document.getElementById('mapC'),ss=G._s,ox=G._ox,oy=G._oy;
+  const el=document.createElement('div');el.className='march m'+G.cp;
+  el.textContent=Math.floor(cnt);el.dataset.uid=uid;
   c.appendChild(el);
-
-  const sx = sc.x * ss + ox, sy = sc.y * ss + oy;
-  const dx = dc.x * ss + ox, dy = dc.y * ss + oy;
-  const start = performance.now();
-
-  function frame(now) {
-    const t = Math.min((now - start) / 1200, 1);
-    const ease = 1 - Math.pow(1 - t, 3);
-    el.style.left = (sx + (dx - sx) * ease) + 'px';
-    el.style.top = (sy + (dy - sy) * ease) + 'px';
-    if (t < 1) {
-      G.af = requestAnimationFrame(frame);
-    } else {
-      el.remove();
-      resolveBattle(uid);
-    }
-  }
-  G.af = requestAnimationFrame(frame);
+  const sx=sc.x*ss+ox,sy=sc.y*ss+oy,dx=dc.x*ss+ox,dy=dc.y*ss+oy,st=performance.now();
+  function f(now){const t=Math.min((now-st)/1200,1),e=1-Math.pow(1-t,3);el.style.left=(sx+(dx-sx)*e)+'px';el.style.top=(sy+(dy-sy)*e)+'px';if(t<1)G.af=requestAnimationFrame(f);else{el.remove();resolve(uid);}}
+  G.af=requestAnimationFrame(f);
 }
 
-function resolveBattle(uid) {
-  // Find the march by UID
-  const idx = G.marches.findIndex(m => m.uid === uid);
-  if (idx < 0) return;
-  const march = G.marches[idx];
-  G.marches.splice(idx, 1);
+function resolve(uid){
+  const idx=G.marches.findIndex(m=>m.uid===uid);if(idx<0)return;
+  const m=G.marches[idx];G.marches.splice(idx,1);
+  const dst=G.t[m.targetId],atk=m.troops,def=Math.floor(dst.troops);
 
-  const targetId = march.targetId;
-  const dst = G.t[targetId];
-  const attacker = march.troops;
-  const defender = Math.floor(dst.troops);
+  if(dst.owner<0){dst.owner=G.cp;dst.troops=Math.max(1,atk-1);show('⚔️占领'+dst.name);}
+  else if(dst.owner===G.cp){dst.troops+=atk;}
+  else if(atk>def){dst.owner=G.cp;dst.troops=atk-def;show('🔥攻陷'+dst.name);}
+  else if(atk===def){dst.owner=-1;dst.troops=1;show('⚖️双方全灭');}
+  else{dst.troops=def-atk;show('💥进攻受挫');}
 
-  // Shield check
-  if (dst._sh && dst._sh > 0) {
-    // Shield blocks damage, just deduct troops from attacker
-    showToast('🛡️护盾挡住了进攻！');
-    // Attacker troops are lost
-    renderAll(); renderSB(); updateUI(); updateEB();
-    checkElims(); checkWin();
-    return;
-  }
-
-  if (dst.owner < 0) {
-    // Neutral
-    dst.owner = G.cp;
-    dst.troops = Math.max(1, attacker - 1);
-    showToast('⚔️占领 ' + dst.name);
-  } else if (dst.owner === G.cp) {
-    // Reinforce own territory
-    dst.troops += attacker;
-    // No toast for reinforcement
-  } else {
-    // Enemy territory
-    if (attacker > defender) {
-      dst.owner = G.cp;
-      dst.troops = attacker - defender;
-      showToast('🔥攻陷 ' + dst.name + '！');
-    } else if (attacker === defender) {
-      dst.owner = -1;
-      dst.troops = 1;
-      showToast('⚖️双方全灭！');
-    } else {
-      dst.troops = defender - attacker;
-      showToast('💥进攻受挫');
-    }
-  }
-
-  updateStats();
-  renderAll();
-  renderSB();
-  updateUI();
-  updateEB();
-  checkElims();
-  checkWin();
+  checkE();updStats();render();renderSB();updUI();updEB();checkW();
 }
 
 // ===== AI =====
-let aiTimer = null;
+let aiT=null;
+function startAI(){stopAI();aiT=setInterval(()=>{for(let i=1;i<G.pl.length;i++)if(G.pl[i].alive)aiTurn(i);},2200);}
+function stopAI(){if(aiT){clearInterval(aiT);aiT=null;}}
 
-function startAI() {
-  stopAI();
-  aiTimer = setInterval(() => {
-    for (let i = 1; i < G.players.length; i++) {
-      if (G.players[i].alive) aiTurn(i);
-    }
-  }, 2200);
-}
-
-function stopAI() { if (aiTimer) { clearInterval(aiTimer); aiTimer = null; } }
-
-function aiTurn(pid) {
-  if (G.over || !G.running) return;
-  const regions = findRegions(pid);
-  const viable = regions.filter(r => regionTroops(r) > 10);
-  if (viable.length === 0) return;
-
-  const shuffled = [...viable].sort(() => Math.random() - 0.5);
-
-  for (const reg of shuffled) {
-    // Find targetable neighbors
-    const targets = [];
-    for (const sid of reg) {
-      for (const n of G.t[sid].neighbors) {
-        const nt = G.t[n];
-        if (nt.owner !== pid && !targets.some(t => t.id === n)) {
-          targets.push({ id: n, troops: nt.troops, owner: nt.owner });
-        }
-      }
-    }
-    if (targets.length === 0) continue;
-
-    // Sort: prefer neutral over enemy, weakest first
-    targets.sort((a, b) => {
-      if (a.owner < 0 && b.owner >= 0) return -1;
-      if (a.owner >= 0 && b.owner < 0) return 1;
-      return a.troops - b.troops;
-    });
-
-    const target = targets[0];
-    const total = regionTroops(reg);
-    const count = Math.min(Math.floor(total * 0.6), total - 5);
-    if (count > 5) {
-      // Find destination region
-      const dstTerr = G.t[target.id];
-      const dstOwner = dstTerr.owner;
-      let dstIds;
-      if (dstOwner < 0) {
-        dstIds = [target.id];
-      } else {
-        const dstReg = findRegions(dstOwner).find(r => r.includes(target.id));
-        dstIds = dstReg ? dstReg : [target.id];
-      }
-      const dstRegion = { ids: dstIds.slice().sort((a, b) => a - b), player: dstOwner };
-      const srcRegion = { ids: reg.slice().sort((a, b) => a - b), player: pid };
-
-      // Deduct troops (AI)
-      const srcTerrs = reg.map(id => G.t[id]);
-      let rem = count;
-      const alive = srcTerrs.filter(t => t.troops > 0);
-      for (const t of alive) {
-        if (rem <= 0) break;
-        const share = Math.min(Math.floor(t.troops), Math.ceil(rem / alive.length));
-        t.troops -= share;
-        rem -= share;
-      }
-      if (rem > 0 && alive.length > 0) alive[0].troops -= rem;
-
-      // Animate AI march
-      const sc = centroid(reg);
-      const c = document.getElementById('mapC');
-      const ss = G._s, ox = G._ox, oy = G._oy;
-      const el = document.createElement('div');
-      el.className = 'march m' + pid;
-      el.textContent = Math.floor(count);
-      c.appendChild(el);
-      const sx = sc.x * ss + ox, sy = sc.y * ss + oy;
-      const dx = G.t[target.id].x * ss + ox, dy = G.t[target.id].y * ss + oy;
-      const start = performance.now();
-
-      const uid = ++G._marchUid;
-      G.marches.push({ uid, srcIds: reg, dstIds: [target.id], troops: count, owner: pid, targetId: target.id });
-
-      function frame(now) {
-        const t = Math.min((now - start) / 1200, 1);
-        const ease = 1 - Math.pow(1 - t, 3);
-        el.style.left = (sx + (dx - sx) * ease) + 'px';
-        el.style.top = (sy + (dy - sy) * ease) + 'px';
-        if (t < 1) {
-          G.af = requestAnimationFrame(frame);
-        } else {
-          el.remove();
-          aiResolve(uid);
-        }
-      }
-      G.af = requestAnimationFrame(frame);
-      break;
-    }
+function aiTurn(pid){
+  if(G.over||!G.run)return;
+  const regions=regs(pid).filter(r=>rTr(r)>10);
+  if(!regions.length)return;
+  const shuffled=[...regions].sort(()=>Math.random()-0.5);
+  for(const reg of shuffled){
+    const targets=[];
+    for(const sid of reg)for(const n of G.t[sid].n){const nt=G.t[n];if(nt.owner!==pid&&!targets.some(t=>t.id===n))targets.push({id:n,troops:nt.troops,owner:nt.owner});}
+    if(!targets.length)continue;
+    targets.sort((a,b)=>{if(a.owner<0&&b.owner>=0)return -1;if(a.owner>=0&&b.owner<0)return 1;return a.troops-b.troops;});
+    const tgt=targets[0],total=rTr(reg),cnt=Math.min(Math.floor(total*0.6),total-5);
+    if(cnt<=5)continue;
+    // Deduct
+    const srcTs=reg.map(i=>G.t[i]),alive=srcTs.filter(t=>t.troops>0);let rem=cnt;
+    for(const t of alive){if(rem<=0)break;const share=Math.min(Math.floor(t.troops),Math.ceil(rem/alive.length));t.troops-=share;rem-=share;}
+    if(rem>0&&alive.length>0)alive[0].troops-=rem;
+    // Animate
+    const sc=cent(reg),c=document.getElementById('mapC'),ss=G._s,ox=G._ox,oy=G._oy;
+    const el=document.createElement('div');el.className='march m'+pid;el.textContent=Math.floor(cnt);c.appendChild(el);
+    const sx=sc.x*ss+ox,sy=sc.y*ss+oy,dx=G.t[tgt.id].x*ss+ox,dy=G.t[tgt.id].y*ss+oy,st=performance.now();
+    const nuid=++G._muid;
+    G.marches.push({uid:nuid,srcIds:reg,dstIds:[tgt.id],troops:cnt,owner:pid,targetId:tgt.id});
+    (function(nid){function f(now){const t=Math.min((now-st)/1200,1),e=1-Math.pow(1-t,3);el.style.left=(sx+(dx-sx)*e)+'px';el.style.top=(sy+(dy-sy)*e)+'px';if(t<1)G.af=requestAnimationFrame(f);else{el.remove();aiRes(nid);}}
+    G.af=requestAnimationFrame(f);})(nuid);
+    break;
   }
 }
 
-function aiResolve(uid) {
-  const idx = G.marches.findIndex(m => m.uid === uid);
-  if (idx < 0) return;
-  const m = G.marches[idx];
-  G.marches.splice(idx, 1);
-
-  const dst = G.t[m.targetId];
-  if (dst._sh && dst._sh > 0) { return; }
-
-  if (dst.owner < 0) {
-    dst.owner = m.owner;
-    dst.troops = Math.max(1, m.troops - 1);
-  } else if (dst.owner === m.owner) {
-    dst.troops += m.troops;
-  } else {
-    if (m.troops > dst.troops) {
-      dst.owner = m.owner;
-      dst.troops = m.troops - dst.troops;
-    } else if (m.troops === dst.troops) {
-      dst.owner = -1;
-      dst.troops = 1;
-    } else {
-      dst.troops -= m.troops;
-    }
-  }
-  updateStats();
-  renderAll();
-  renderSB();
-  updateUI();
-  updateEB();
-  checkElims();
-  checkWin();
+function aiRes(uid){
+  const idx=G.marches.findIndex(m=>m.uid===uid);if(idx<0)return;
+  const m=G.marches[idx];G.marches.splice(idx,1);
+  const dst=G.t[m.targetId],atk=m.troops,def=Math.floor(dst.troops);
+  if(dst.owner<0){dst.owner=m.owner;dst.troops=Math.max(1,atk-1);}
+  else if(dst.owner===m.owner){dst.troops+=atk;}
+  else if(atk>def){dst.owner=m.owner;dst.troops=atk-def;}
+  else if(atk===def){dst.owner=-1;dst.troops=1;}
+  else{dst.troops=def-atk;}
+  checkE();updStats();render();renderSB();updUI();updEB();checkW();
 }
 
-// ===== GAME STATE =====
-function updateStats() {
-  G.players.forEach(p => { p.troops = 0; p.lands = 0; });
-  G.t.forEach(t => {
-    if (t.owner >= 0) {
-      G.players[t.owner].troops += Math.floor(t.troops);
-      G.players[t.owner].lands++;
-    }
-  });
-}
-
-function updateUI() {
-  const p = G.players[G.cp];
-  document.getElementById('myT').textContent = Math.floor(p.troops);
-  document.getElementById('diamondC').textContent = G.dia;
-  const timer = document.getElementById('timer');
-  const m = Math.floor(G.time / 60), s = Math.floor(G.time % 60);
-  timer.textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
-  timer.classList.toggle('warn', G.time < 60);
-}
-
-function updateEB() {
-  const bar = document.getElementById('eb'), val = document.getElementById('ev');
-  const p = G.players[G.cp];
-  if (p.alive && p.lands > 0) {
-    val.textContent = '+' + totalProd(0) + '/秒 (x' + efficiency(p.lands).toFixed(2) + ')';
-    bar.style.display = 'flex';
-  } else {
-    bar.style.display = 'none';
-  }
-}
-
-function renderSB() {
-  const sb = document.getElementById('sb');
-  sb.innerHTML = G.players.map((p, i) => {
-    const multiplier = p.alive ? efficiency(p.lands) : 0;
-    return '<div class="sbi' + (i === G.cp ? ' me' : '') + '" style="' + (!p.alive ? 'opacity:.3' : '') + '">' +
-      '<span class="sd" style="background:' + p.color + '"></span>' +
-      '<span class="sn">' + p.name + (!p.alive ? '💀' : '') + '</span>' +
-      '<span class="st">' + Math.floor(p.troops) + '</span>' +
-      '<span class="sl">(' + p.lands + ')</span>' +
-      '<span class="sef">x' + multiplier.toFixed(2) + '</span></div>';
-  }).join('');
-}
-
-function checkElims() {
-  const alive = new Set();
-  G.t.forEach(t => { if (t.owner >= 0) alive.add(t.owner); });
-  G.players.forEach((p, i) => { p.alive = alive.has(i) || i === G.cp; });
-}
-
-function checkWin() {
-  if (G.over) return;
-  const alive = G.players.filter(p => p.alive);
-  if (alive.length <= 1 && G.players.some(p => p.alive)) {
-    endGame(alive[0] ? alive[0].id : null);
-  }
+// ===== UPDATE =====
+function updStats(){G.pl.forEach(p=>{p.troops=0;p.lands=0;});G.t.forEach(t=>{if(t.owner>=0){G.pl[t.owner].troops+=Math.floor(t.troops);G.pl[t.owner].lands++;}});}
+function updUI(){const p=G.pl[G.cp];document.getElementById('myT').textContent=Math.floor(p.troops);document.getElementById('dC').textContent=G.dia;
+  const timer=document.getElementById('timer'),m=Math.floor(G.tl/60),s=Math.floor(G.tl%60);timer.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');timer.classList.toggle('warn',G.tl<60);}
+function updEB(){const bar=document.getElementById('eb'),val=document.getElementById('ev'),p=G.pl[G.cp];if(p.alive&&p.lands>0){val.textContent='+'+tProd(0)+'/秒(x'+eff(p.lands).toFixed(2)+')';bar.style.display='flex';}else bar.style.display='none';}
+function renderSB(){document.getElementById('sb').innerHTML=G.pl.map((p,i)=>'<div class="sbi'+(i===G.cp?' me':'')+'" style="'+(p.alive?'':'opacity:.3')+'"><span class="sd" style="background:'+p.color+'"></span><span class="sn">'+p.name+(p.alive?'':'💀')+'</span><span class="st">'+Math.floor(p.troops)+'</span><span class="sl">('+p.lands+')</span><span class="se">x'+(p.alive?eff(p.lands).toFixed(2):'0')+'</span></div>').join('');}
+function checkE(){const a=new Set();G.t.forEach(t=>{if(t.owner>=0)a.add(t.owner);});G.pl.forEach((p,i)=>{p.alive=a.has(i)||i===G.cp;});}
+function checkW(){if(G.over)return;const a=G.pl.filter(p=>p.alive);if(a.length<=1&&G.pl.some(p=>p.alive))end(a[0]?.id);}
+function end(wid){G.over=true;G.run=false;stopAI();if(G.af){cancelAnimationFrame(G.af);G.af=null;}
+  const s=G.pl.map((p,i)=>({name:p.name,troops:Math.floor(p.troops),lands:p.lands,score:Math.floor(p.troops)+p.lands*10,alive:p.alive})).sort((a,b)=>b.score-a.score);
+  const rk=s.findIndex(x=>x.name===G.pl[G.cp].name)+1;
+  let m='🏆对局结束！\n'+(wid===G.cp?'🎉你赢了！':wid>=0?G.pl[wid].name+'获胜':'⚖️平局！')+'\n\n';
+  s.forEach((x,i)=>{m+=(['🥇','🥈','🥉'][i]||'#'+(i+1))+' '+x.name+(x.alive?'':'💀')+' 兵'+x.troops+' 地'+x.lands+' 总分'+x.score+'\n';});
+  m+='\n排名:'+rk+'/'+s.length;show(m);
 }
 
 // ===== ITEMS =====
-const SHOP_ITEMS = [
-  { id: 'c', name: '征兵令', price: 50, limit: 2 },
-  { id: 's', name: '🛡护盾', price: 100, limit: 1 },
-  { id: 'r', name: '⚡急行军', price: 80, limit: 1 },
-  { id: 'a', name: '✈空袭', price: 200, limit: 1 },
-  { id: 'sp', name: '👁间谍', price: 60, limit: 2 },
-  { id: 're', name: '📦征兵', price: 120, limit: 1 },
-];
-let itemUsage = {};
-
-function renderItems() {
-  const ir = document.getElementById('ir');
-  ir.innerHTML = SHOP_ITEMS.map(it => {
-    const used = itemUsage[it.id] || 0;
-    return '<div class="ib' + (used >= it.limit ? ' used' : '') + '" data-id="' + it.id + '">' +
-      '<span class="in">' + it.name + '</span>' +
-      '<span class="ip">💎' + it.price + '</span></div>';
-  }).join('');
-  ir.querySelectorAll('.ib:not(.used)').forEach(b => {
-    b.addEventListener('click', () => useItem(b.dataset.id));
-  });
-}
-
-function useItem(id) {
-  if (G.over || !G.running) return;
-  const item = SHOP_ITEMS.find(i => i.id === id);
-  if (!item) return;
-  const used = itemUsage[id] || 0;
-  if (used >= item.limit) { showToast('❌' + item.name + '已用尽'); return; }
-  if (G.dia < item.price) { showToast('💎还差' + (item.price - G.dia) + '💎'); return; }
-
-  G.dia -= item.price;
-  itemUsage[id] = (itemUsage[id] || 0) + 1;
-
-  switch (id) {
-    case 'c':
-      G.boost = (G.boost || 0) + 1;
-      showToast('📯产出+50%（60秒）');
-      setTimeout(() => { G.boost = Math.max(0, (G.boost || 0) - 1); }, 60000);
-      break;
-    case 's':
-      if (G.sel) {
-        G.sel.ids.forEach(i => { G.t[i]._sh = (G.t[i]._sh || 0) + 1; });
-        showToast('🛡护盾已激活（15秒）');
-        setTimeout(() => { G.sel.ids.forEach(i => { if (G.t[i]._sh) G.t[i]._sh--; }); }, 15000);
-      } else { showToast('🛡请先选中己方区域'); G.dia += item.price; itemUsage[id]--; }
-      break;
-    case 'r':
-      showToast('⚡出兵加速！');
-      break;
-    case 'a': {
-      const targets = G.regions.filter(r => r.player !== G.cp && r.player >= 0);
-      if (targets.length > 0) {
-        const tgt = targets[0];
-        let rem = Math.min(50, Math.max(1, regionTroops(tgt.ids) - 1));
-        const tids = tgt.ids.filter(i => G.t[i].troops > 0);
-        if (tids.length > 0) {
-          for (const id of tids) {
-            if (rem <= 0) break;
-            const share = Math.min(Math.floor(G.t[id].troops), Math.ceil(rem / tids.length));
-            G.t[id].troops -= share;
-            rem -= share;
-          }
-          showToast('✈空袭！50伤害');
-          renderAll(); renderSB(); updateUI(); updateEB();
-          checkElims(); checkWin();
-        }
-      } else { showToast('✈没有可攻击目标'); G.dia += item.price; itemUsage[id]--; }
-      break;
-    }
-    case 'sp':
-      showToast('👁间谍已派出（模拟中）');
-      break;
-    case 're':
-      if (G.sel) {
-        G.sel.ids.forEach(i => { G.t[i].troops += 30 / G.sel.ids.length; });
-        showToast('📦+30援军');
-        renderAll(); renderSB(); updateUI(); updateEB();
-      } else { showToast('📦请先选中己方区域'); G.dia += item.price; itemUsage[id]--; }
-      break;
-  }
-  renderItems();
-  updateUI();
+const SHOP=[{id:'c',name:'征兵令',p:50,l:2},{id:'s',name:'🛡护盾',p:100,l:1},{id:'r',name:'⚡急行军',p:80,l:1},{id:'a',name:'✈空袭',p:200,l:1},{id:'sp',name:'👁间谍',p:60,l:2},{id:'re',name:'📦征兵',p:120,l:1}];
+let iU={};
+function renderItems(){document.getElementById('ir').innerHTML=SHOP.map(it=>'<div class="ib'+(iU[it.id]>=it.limit?' used':'')+'" data-id="'+it.id+'"><span class="in">'+it.name+'</span><span class="ip">💎'+it.p+'</span></div>').join('');
+  document.querySelectorAll('.ib:not(.used)').forEach(b=>b.addEventListener('click',()=>useI(b.dataset.id)));}
+function useI(id){
+  if(G.over)return;const item=SHOP.find(i=>i.id===id);if(!item)return;const u=iU[id]||0;
+  if(u>=item.l){show('❌已用尽');return;}if(G.dia<item.p){show('💎还差'+(item.p-G.dia));return;}
+  G.dia-=item.p;iU[id]=(iU[id]||0)+1;
+  if(id==='s'&&G.sel){G.sel.ids.forEach(i=>{G.t[i]._sh=1;});show('🛡护盾！');setTimeout(()=>{G.sel&&G.sel.ids.forEach(i=>{G.t[i]._sh=0;});},15000);}
+  else if(id==='s'){show('先选中领地');G.dia+=item.p;iU[id]--;}
+  else if(id==='a'){const t=G.regions.filter(r=>r.player!==G.cp&&r.player>=0);
+    if(t.length){const tg=t[0];let r=Math.min(50,Math.max(1,rTr(tg.ids)-1));
+      const ids=tg.ids.filter(i=>G.t[i].troops>0);if(ids.length)for(const ti of ids){if(r<=0)break;const sh=Math.min(Math.floor(G.t[ti].troops),Math.ceil(r/ids.length));G.t[ti].troops-=sh;r-=sh;}
+      show('✈空袭！');render();renderSB();updUI();updEB();checkE();checkW();
+    }else show('✈无目标');}
+  else if(id==='re'){if(G.sel){G.sel.ids.forEach(i=>{G.t[i].troops+=30/G.sel.ids.length;});show('📦+30援军');render();renderSB();updUI();updEB();}else{show('先选中领地');G.dia+=item.p;iU[id]--;}}
+  else show('✅'+item.name+'生效');
+  renderItems();updUI();
 }
 
 // ===== GAME LOOP =====
-let loopTimer = null;
-
-function startLoop() {
-  stopLoop();
-  loopTimer = setInterval(() => {
-    if (G.over || !G.running) return;
-
-    G.time -= 1;
-    if (G.time <= 0) { G.time = 0; endByTime(); return; }
-
-    // Produce troops per player
-    G.players.forEach((p, pi) => {
-      if (!p.alive || p.lands === 0) return;
-      const prod = totalProd(pi); // total per second
-      const owned = G.t.filter(t => t.owner === pi);
-      if (owned.length === 0) return;
-      const perTerr = prod / owned.length;
-      owned.forEach(t => { t.troops += perTerr; });
-    });
-
-    updateStats();
-    updateUI();
-    renderSB();
-    updateEB();
-  }, 1000);
-}
-
-function stopLoop() { if (loopTimer) { clearInterval(loopTimer); loopTimer = null; } }
-
-// ===== END GAME =====
-function endGame(winnerId) {
-  G.over = true;
-  G.running = false;
-  stopAI();
-  stopLoop();
-  if (G.af) { cancelAnimationFrame(G.af); G.af = null; }
-
-  const scores = G.players.map((p, i) => ({
-    name: p.name, color: p.color,
-    score: Math.floor(p.troops) + p.lands * 10,
-    troops: Math.floor(p.troops), lands: p.lands, alive: p.alive
-  })).sort((a, b) => b.score - a.score);
-
-  const myRank = scores.findIndex(s => s.name === G.players[G.cp].name) + 1;
-  let msg = '🏆对局结束！\n';
-  if (winnerId === G.cp) msg += '🎉你赢了！';
-  else if (winnerId !== null && winnerId !== undefined) msg += G.players[winnerId].name + '获胜';
-  else msg += '⚖️平局！';
-  msg += '\n\n';
-  scores.forEach((s, i) => {
-    const medal = ['🥇', '🥈', '🥉'][i] || '#' + (i + 1);
-    msg += medal + ' ' + s.name + (s.alive ? '' : '💀') + ' 兵' + s.troops + ' 地' + s.lands + ' 总分' + s.score + '\n';
-  });
-  msg += '\n排名: ' + myRank + '/' + scores.length;
-  showToast(msg);
-}
-
-function endByTime() {
-  const s = G.players.map((p, i) => ({
-    id: i, name: p.name, score: Math.floor(p.troops) + p.lands * 10,
-    troops: Math.floor(p.troops), lands: p.lands, alive: p.alive
-  })).sort((a, b) => b.score - a.score);
-  endGame(s[0].id);
-}
+let lt=null;
+function startL(){stopL();lt=setInterval(()=>{if(G.over||!G.run)return;G.tl-=1;if(G.tl<=0){G.tl=0;endByT();return;}
+  G.pl.forEach((p,pi)=>{if(!p.alive||!p.lands)return;const prod=tProd(pi),owned=G.t.filter(t=>t.owner===pi);if(!owned.length)return;const per=prod/owned.length;owned.forEach(t=>{t.troops+=per;});});
+  updStats();updUI();renderSB();updEB();},1000);}
+function stopL(){if(lt){clearInterval(lt);lt=null;}}
+function endByT(){const s=G.pl.map((p,i)=>({id:i,score:Math.floor(p.troops)+p.lands*10})).sort((a,b)=>b.score-a.score);end(s[0].id);}
 
 // ===== TOAST =====
-let toastTimer = null;
-
-function showToast(msg) {
-  document.querySelectorAll('.toast').forEach(el => el.remove());
-  if (toastTimer) clearTimeout(toastTimer);
-  const el = document.createElement('div');
-  el.className = 'toast';
-  el.textContent = msg;
-  document.getElementById('mapC').appendChild(el);
-  toastTimer = setTimeout(() => { el.remove(); }, 3000);
-}
+let tt=null;function show(msg){document.querySelectorAll('.toast').forEach(el=>el.remove());if(tt)clearTimeout(tt);const el=document.createElement('div');el.className='toast';el.textContent=msg;document.getElementById('mapC').appendChild(el);tt=setTimeout(()=>{el.remove();},3000);}
 
 // ===== EVENTS =====
-// Click outside deselects
-document.addEventListener('click', function(e) {
-  // If click is not on a game element, deselect
-  if (!e.target.closest('#svgM') && !e.target.closest('.rl') && !e.target.closest('.toast')) {
-    // Only deselect if we had a selection
-    const hadSel = G.sel !== null;
-    if (hadSel) {
-      G.sel = null;
-      renderAll();
-    }
-  }
-});
+document.getElementById('adBtn').onclick=()=>{if(G.over)return;G.dia+=20;show('📺+20💎');updUI();};
+document.getElementById('helpBtn').onclick=()=>show('🎯点击己方区域选中→再点敌方出兵(自动半兵)');
 
-document.getElementById('adB').addEventListener('click', function() {
-  if (G.over) return;
-  G.dia += 20;
-  showToast('📺+20💎');
-  updateUI();
-});
-
-document.getElementById('halfB').addEventListener('click', function() {
-  if (G.sel) {
-    showToast('🎯己方已选中，点击敌方区域出兵（自动半兵）');
-  } else {
-    showToast('🎯点击己方区域选中，再点击相邻敌方/中立区域出兵');
-  }
-});
-
-document.getElementById('speedB').addEventListener('click', function() {
-  showToast('⚡闪电战·5分钟定胜负·领地越多效率越高');
-});
-
-// ===== START =====
-initGame();
-startLoop();
-startAI();
+// ===== INIT =====
+function init(){
+  G.pl=PN.map((n,i)=>({id:i,name:n,color:PC[i],troops:0,lands:0,alive:true}));
+  G.t=TERRITORIES.map(t=>{const o=PS.findIndex(s=>s.includes(t.id));return{...t,owner:o>=0?o:-1,troops:o>=0?15:Math.floor(Math.random()*5)+3,_sh:0};});
+  G.marches=[];G.sel=null;G.tl=300;G.dia=200;G.run=true;G.over=false;G._muid=0;
+  updStats();render();renderSB();renderItems();updUI();updEB();
+  startL();startAI();
+}
+init();
 </script>
 </body>
 </html>

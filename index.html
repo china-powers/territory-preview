@@ -256,13 +256,13 @@ function renderAll() {
         const poly = polygonPoints(reg, s, ox, oy); // reg = original order for centroid
         if (poly) {
           svgHTML += `<polygon points="${poly}" fill="${col}" stroke="${col}" ` +
-            `style="fill-opacity:${isSelected?.3:.25};stroke-opacity:.7;stroke-width:${isSelected?4:2.5};pointer-events:auto;cursor:pointer" ` +
+            `style="fill-opacity:${isSelected ? .3:.25};stroke-opacity:.7;stroke-width:${isSelected ? 4:2.5};pointer-events:auto;cursor:pointer" ` +
             `data-key="${key}" class="rp${cls}"/>`;
         }
       } else {
         const t = G.t[sorted[0]];
         svgHTML += `<circle cx="${t.x * s + ox}" cy="${t.y * s + oy}" r="24" fill="${col}" stroke="${col}" ` +
-          `style="fill-opacity:${isSelected?.3:.25};stroke-opacity:.7;stroke-width:${isSelected?4:2.5};pointer-events:auto;cursor:pointer" ` +
+          `style="fill-opacity:${isSelected ? .3:.25};stroke-opacity:.7;stroke-width:${isSelected ? 4:2.5};pointer-events:auto;cursor:pointer" ` +
           `data-key="${key}" class="rc${cls}"/>`;
       }
     });

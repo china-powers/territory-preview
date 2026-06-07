@@ -261,9 +261,19 @@ function onCell(id){
   }
   if(S.sel&&S.sel.player===S.cp){
     const srcReg=S.sel.reg;
-    if(!adj(srcReg,[id])){show('目标不相邻');return;}
-    if(S.battles[id]){show('正在战斗中');return;}
-    // Take troops from the entire region
+    // Find target region (enemy territory)
+    var tgtReg=null;
+    if(t.owner>=0){
+      var rgs2=regs(t.owner);
+      tgtReg=rgs2.find(function(r){return r.includes(id);})||null;
+    }
+    var tgtIds=tgtReg?tgtReg:[id];
+    if(!adj(srcReg,tgtIds)){show('目标不相邻');return;}
+    // Find an adjacent frontier cell as battle point
+    var tgtId=null;
+    for(var si=0;si<srcReg.length;si++){for(var ni=0;ni<S.t[srcReg[si]].n.length;ni++){var nn=S.t[srcReg[si]].n[ni];if(tgtIds.includes(nn)){tgtId=nn;break;}}if(tgtId!==null)break;}
+    if(!tgtId||S.battles[tgtId]){show('正在战斗中');return;}
+    // Take troops from entire source region
     var srcTs=[];var total=0;
     for(var si=0;si<srcReg.length;si++){var st=S.t[srcReg[si]];if(st.troops>1){total+=Math.floor(st.troops);srcTs.push(st);}}
     var cnt=Math.floor(total/2);
@@ -272,7 +282,7 @@ function onCell(id){
     for(var si=0;si<srcTs.length;si++){if(rem<=0)break;var sh=Math.min(Math.floor(srcTs[si].troops),Math.ceil(rem/srcTs.length));srcTs[si].troops-=sh;rem-=sh;}
     if(rem>0&&srcTs.length>0)srcTs[0].troops-=rem;
     var uid=++S._buid;
-    S.battles[id]={progress:0,atkOwner:S.cp,atkTroops:cnt,defTroops:Math.floor(t.troops),uid,srcIds:srcReg.slice()};
+    S.battles[tgtId]={progress:0,atkOwner:S.cp,atkTroops:cnt,defTroops:Math.floor(S.t[tgtId].troops),uid,srcIds:srcReg.slice()};
     show('⚔️进攻！');
     render();updStats();renderSB();updUI();updEB();
     return;

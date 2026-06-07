@@ -384,7 +384,7 @@ document.getElementById('adB').onclick=()=>{if(S.over)return;S.dia+=20;show('�
 document.getElementById('helpB').onclick=()=>show('🎯点击己方格子选中→点相邻目标出兵');
 
 // ===== INIT =====
-function init(){
+function init(){window.BUILD="20260608-3";
   S.pl=PN.map((n,i)=>({id:i,name:n,color:PC[i],troops:0,lands:0,alive:true}));
   S.t=ALL_T.map(t=>{let o=-1;for(const[p,s]of Object.entries(PSTARTS))if(s.includes(t.id)){o=parseInt(p);break;}return{...t,owner:o,troops:o>=0?18:Math.floor(Math.random()*4)+3,_sh:0};});
   S.sel=null;S.tl=300;S.dia=200;S.run=true;S.over=false;S.battles={};S._buid=0;
